@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  /* ---- Kodevio hero design tokens (exact values from Figma node 1:2) ---- */
+  --hero-white: #ffffff;
+  --hero-ink-300: #686868; /* nav links — dark/dark-300 */
+  --hero-muted: #757575; /* +4 badge text */
+  --hero-star: #ffe23f;
+  --hero-badge-bg: #f1f1f1;
+  --hero-btn-gradient: linear-gradient(
+    167.63deg,
+    rgb(154, 150, 255) 8.4213%,
+    rgb(104, 97, 238) 47.735%,
+    rgb(88, 81, 234) 87.048%
+  );
+  --hero-btn-shadow: 0 4px 8.15px rgba(0, 0, 0, 0.12);
+  --hero-scrim-top: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0) 53.59%
+  );
+  --hero-fade-bottom: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.79) 69.13%,
+    #ffffff 100%
+  );
+  --font-satoshi: "Satoshi", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-hero-ink: var(--hero-ink-300);
+  --font-satoshi: var(--font-satoshi);
+}
+
+html,
+body {
+  background: #ffffff;
+}
+
+body {
+  font-family: var(--font-satoshi);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---- Entrance (one-shot, transform/opacity only) ---- */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hero-enter {
+  animation: hero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-enter-fade {
+  animation: hero-fade 1.1s ease-out both;
+}
+
+.hero-delay-1 {
+  animation-delay: 0.08s;
+}
+.hero-delay-2 {
+  animation-delay: 0.18s;
+}
+.hero-delay-3 {
+  animation-delay: 0.3s;
+}
+.hero-delay-4 {
+  animation-delay: 0.42s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-enter,
+  .hero-enter-fade {
+    animation: none;
+  }
+  .hero-video {
+    display: none;
+  }
+  .hero-poster-fallback {
+    opacity: 1 !important;
+  }
+}
