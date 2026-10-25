@@ -162,7 +162,7 @@ export default function HeroSection({
         {/* ---------- Top nav bar (Figma: 1159×75, radius 154, glass white 31%) ---------- */}
         <nav
           aria-label="Primary"
-          className="relative flex h-[75px] items-center justify-between overflow-visible rounded-[154px] bg-white/30 pr-2 pl-[38px] backdrop-blur-md"
+          className="relative flex h-[75px] items-center justify-between overflow-visible rounded-[154px] bg-white/45 pr-2 pl-[38px] backdrop-blur-lg"
         >
           <a href="#" aria-label="Kodevio home" className="shrink-0">
             <Image
