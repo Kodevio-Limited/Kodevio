@@ -13,7 +13,7 @@
     rgb(104, 97, 238) 47.735%,
     rgb(88, 81, 234) 87.048%
   );
-  --hero-btn-shadow: 0 4px 8.15px rgba(0, 0, 0, 0.12);
+  --hero-btn-shadow: 0 4px 16.3px 11px rgba(0, 0, 0, 0.12);
   --hero-scrim-top: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.28) 0%,

@@ -56,7 +56,8 @@ function CtaButton({
       className={`flex h-[59px] items-center justify-center gap-[3px] rounded-[57px] px-[34px] py-4 text-white transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98] ${className}`}
       style={{
         backgroundImage: BTN_GRADIENT,
-        boxShadow: "0 4px 8.15px rgba(0,0,0,0.12)",
+        /* Figma: 0 4px 16.3px rgba(0,0,0,0.12) with spread 11 */
+        boxShadow: "0 4px 16.3px 11px rgba(0,0,0,0.12)",
       }}
     >
       <span className="font-[Satoshi] text-[20px] font-bold leading-[1.4] whitespace-nowrap">
@@ -102,7 +103,9 @@ export default function HeroSection({
     <section
       id="hero"
       aria-label="Kodevio hero"
-      className={`relative min-h-[620px] w-full overflow-hidden rounded-[27px] bg-[#87b5d6] transition-transform duration-[1250ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+      /* Full-bleed per Figma node 324:23968 — no border radius (radius caused
+         dark edges/corners showing the page background beneath) */
+      className={`relative min-h-[620px] w-full overflow-hidden bg-[#87b5d6] transition-transform duration-[1250ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
         isEntered
           ? "translate-y-0"
           : "translate-y-full"
@@ -156,9 +159,10 @@ export default function HeroSection({
             : "-translate-y-12 opacity-0 pointer-events-none"
         }`}
       >
+        {/* ---------- Top nav bar (Figma: 1159×75, radius 154, glass white 31%) ---------- */}
         <nav
           aria-label="Primary"
-          className="relative flex h-[75px] items-center justify-between overflow-visible rounded-[154px] bg-white pr-2 pl-[38px]"
+          className="relative flex h-[75px] items-center justify-between overflow-visible rounded-[154px] bg-white/30 pr-2 pl-[38px] backdrop-blur-md"
         >
           <a href="#" aria-label="Kodevio home" className="shrink-0">
             <Image
@@ -239,9 +243,9 @@ export default function HeroSection({
         </nav>
       </header>
 
-      {/* ---------- Hero copy (top 138px, width 997) ---------- */}
+      {/* ---------- Hero copy (top 138px, width 997, headline 851) ---------- */}
       <div className="absolute top-[138px] left-1/2 flex w-[min(997px,calc(100%-40px))] -translate-x-1/2 flex-col items-center gap-[25px] sm:top-[138px]">
-        <h1 className="hero-enter text-center font-[Satoshi] text-[clamp(2rem,1.05rem+4.4vw,3.75rem)] leading-[1.39] font-medium text-white [text-shadow:0_2px_24px_rgba(0,0,0,0.18)]">
+        <h1 className="hero-enter w-full max-w-[851px] text-center font-[Satoshi] text-[clamp(2rem,1.05rem+4.4vw,3.75rem)] leading-[1.39] font-medium text-white [text-shadow:0_2px_24px_rgba(0,0,0,0.18)]">
           We Build Software That Moves Businesses Forward
         </h1>
 
@@ -289,10 +293,11 @@ export default function HeroSection({
         </div>
       </div>
 
-      {/* Bottom frosted fade — short Apple liquid-glass style dissolve into the page */}
+      {/* Bottom white dissolve — Figma frame 324:23998 (h 258 @1920): transparent → white 79% → white */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[140px] bg-gradient-to-b from-white/0 via-white/35 to-white/90 backdrop-blur-[8px] [mask-image:linear-gradient(to_bottom,transparent,black)]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[clamp(140px,19vh,258px)]"
         aria-hidden="true"
+        style={{ background: "var(--hero-fade-bottom)" }}
       />
     </section>
   );
