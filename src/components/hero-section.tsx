@@ -76,8 +76,10 @@ const NAV_LINKS = [
 
 export default function HeroSection({
   isEntered = true,
+  isNavVisible = true,
 }: {
   isEntered?: boolean;
+  isNavVisible?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -147,7 +149,13 @@ export default function HeroSection({
       />
 
       {/* ---------- Top nav bar (1159 × 75, radius 154) ---------- */}
-      <header className="hero-enter-fade absolute top-[27px] left-1/2 w-[min(1159px,calc(100%-32px))] -translate-x-1/2">
+      <header
+        className={`fixed top-[27px] left-1/2 z-40 w-[min(1159px,calc(100%-32px))] -translate-x-1/2 transition-all duration-300 ease-in-out ${
+          isNavVisible
+            ? "translate-y-0 opacity-100 pointer-events-auto"
+            : "-translate-y-12 opacity-0 pointer-events-none"
+        }`}
+      >
         <nav
           aria-label="Primary"
           className="relative flex h-[75px] items-center justify-between overflow-visible rounded-[154px] bg-white pr-2 pl-[38px]"

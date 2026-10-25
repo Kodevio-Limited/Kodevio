@@ -3,7 +3,11 @@
 import Image from "next/image";
 import { useState } from "react";
 
-export default function BottomDock() {
+export default function BottomDock({
+  visible = true,
+}: {
+  visible?: boolean;
+}) {
   const [activeTab, setActiveTab] = useState<"home" | "menu">("home");
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -66,7 +70,11 @@ export default function BottomDock() {
       {/* Floating Bottom Nav Dock */}
       <aside
         aria-label="Floating dock"
-        className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
+        className={`fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transition-all duration-500 ease-out ${
+          visible
+            ? "translate-y-0 opacity-100 pointer-events-auto"
+            : "translate-y-24 opacity-0 pointer-events-none"
+        }`}
       >
         <div
           className="flex h-[64px] items-center gap-4 rounded-full border border-white/15 bg-[#121217]/80 px-5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all duration-300 hover:border-white/25 hover:shadow-[0_12px_40px_rgba(88,81,234,0.25)]"
