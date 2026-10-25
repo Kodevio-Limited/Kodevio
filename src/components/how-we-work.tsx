@@ -5,158 +5,199 @@ import { useState } from "react";
 
 const PHASES = [
   {
-    step: "01",
+    id: 1,
+    tabName: "Phase 01",
     title: "Discover & Strategy",
-    color: "#8B5CF6", // Electric Violet
-    bgGradient: "linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(139,92,246,0.02) 100%)",
-    borderColor: "rgba(139,92,246,0.25)",
-    tagBg: "rgba(139,92,246,0.15)",
-    tagText: "#c4b5fd",
-    glowColor: "rgba(139,92,246,0.35)",
     description:
       "We explore your vision, user needs, and competitive market to build an actionable product strategy ensuring every design choice and technical feature drives real business growth.",
+    tabColor: "#EEA6A1",
+    tabBg: "#FFF1F0",
+    activeColor: "#EEA6A1",
     produces: ["Discovery Report", "User Personas", "Content Hierarchy"],
-    image: "/how-we-work/abb8811391886ab5549a66d437a7a9c74602ea38.png",
+    icons: [
+      { name: "Figma", color: "#F24E1E", letter: "F" },
+      { name: "Notion", color: "#000000", letter: "N" },
+      { name: "Miro", color: "#FFD02F", letter: "M" },
+    ],
   },
   {
-    step: "02",
+    id: 2,
+    tabName: "Phase 02",
     title: "Design & Refine",
-    color: "#38BDF8", // Cyan Azure
-    bgGradient: "linear-gradient(135deg, rgba(56,189,248,0.12) 0%, rgba(56,189,248,0.02) 100%)",
-    borderColor: "rgba(56,189,248,0.25)",
-    tagBg: "rgba(56,189,248,0.15)",
-    tagText: "#7dd3fc",
-    glowColor: "rgba(56,189,248,0.35)",
     description:
-      "We turn your strategy into effortless user journeys and pixel-perfect interfaces—combining modern usability with custom design systems that reflect your brand’s unique visual identity.",
-    produces: ["Visual Direction", "UI Screens", "Design System"],
-    image: "/how-we-work/Frame 2147226624.png",
+      "We transform strategic goals into beautiful, intuitive interfaces. Through rapid prototyping and continuous feedback, we craft engaging user journeys that reflect your brand identity.",
+    tabColor: "#C4B5FD",
+    tabBg: "#F5F3FF",
+    activeColor: "#A78BFA",
+    produces: ["Interactive Prototype", "Design System", "UX Wireframes"],
+    icons: [
+      { name: "Figma", color: "#A259FF", letter: "F" },
+      { name: "Spline", color: "#FF3366", letter: "S" },
+      { name: "Adobe", color: "#FF0000", letter: "A" },
+    ],
   },
   {
-    step: "03",
+    id: 3,
+    tabName: "Phase 03",
     title: "Build & Integrate",
-    color: "#34D399", // Emerald Green
-    bgGradient: "linear-gradient(135deg, rgba(52,211,153,0.12) 0%, rgba(52,211,153,0.02) 100%)",
-    borderColor: "rgba(52,211,153,0.25)",
-    tagBg: "rgba(52,211,153,0.15)",
-    tagText: "#a7f3d0",
-    glowColor: "rgba(52,211,153,0.35)",
     description:
-      "We transform static designs into high-performing applications through clean architecture, seamless API integrations, and reusable component libraries that ensure fast speeds and effortless scalability.",
-    produces: ["Code Base", "CMS Integration", "Component Docs"],
-    image: "/how-we-work/Rectangle 2.png",
+      "Our engineering team translates approved designs into scalable, pixel-perfect code using modern tech stacks. We integrate essential APIs, custom AI models, and secure database layers.",
+    tabColor: "#93C5FD",
+    tabBg: "#EFF6FF",
+    activeColor: "#60A5FA",
+    produces: ["Production Codebase", "API Documentation", "QA Test Suite"],
+    icons: [
+      { name: "Next.js", color: "#000000", letter: "N" },
+      { name: "Supabase", color: "#3ECF8E", letter: "S" },
+      { name: "Tailwind", color: "#06B6D4", letter: "T" },
+    ],
   },
   {
-    step: "04",
+    id: 4,
+    tabName: "Phase 04",
     title: "Optimise & Grow",
-    color: "#FBBF24", // Amber Gold
-    bgGradient: "linear-gradient(135deg, rgba(251,191,36,0.12) 0%, rgba(251,191,36,0.02) 100%)",
-    borderColor: "rgba(251,191,36,0.25)",
-    tagBg: "rgba(251,191,36,0.15)",
-    tagText: "#fde68a",
-    glowColor: "rgba(251,191,36,0.35)",
     description:
       "We closely study user behavior, implement continuous performance improvements, and refine your product experience to boost engagement and turn more visitors into customers.",
+    tabColor: "#D0F49D",
+    tabBg: "#F7FEE7",
+    activeColor: "#84CC16",
     produces: ["CRO Recommendations", "A/B Test Plan", "Launch Report"],
-    image: "/how-we-work/Frame 2147226620.png",
+    icons: [
+      { name: "Claude", color: "#D97706", letter: "✱" },
+      { name: "ChatGPT", color: "#10A37F", letter: "⚡" },
+      { name: "PostHog", color: "#EF4444", letter: "P" },
+    ],
   },
 ];
 
 export default function HowWeWorkSection() {
-  const [activePhase, setActivePhase] = useState(0);
+  const [activeId, setActiveId] = useState(4);
+  const activePhase = PHASES.find((p) => p.id === activeId) || PHASES[3];
 
   return (
     <section
-      id="process"
+      id="how-we-work"
       aria-label="How We Work"
-      className="relative mx-auto w-full max-w-[1583px] px-6 py-24 sm:px-10 lg:py-32"
+      className="relative mx-auto w-full max-w-[1765px] px-6 py-20 sm:px-12 lg:py-28 bg-white"
     >
-      {/* Section Header */}
-      <div className="mx-auto max-w-[850px] text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 backdrop-blur-md">
-          <span className="size-2 rounded-full bg-[#6861ee] animate-pulse" />
-          <span className="font-[Satoshi] text-[14px] font-medium text-white/80">
-            Explore AI Capabilities
-          </span>
-        </div>
-        <h2 className="mt-6 font-[Satoshi] text-[36px] sm:text-[46px] md:text-[54px] font-bold leading-[1.2] tracking-tight text-white">
-          How We Bring Your Vision to Life
-        </h2>
-        <p className="mt-4 font-[Satoshi] text-[17px] sm:text-[20px] font-normal leading-[1.45] text-white/60">
-          Four clear phases that keep you in the loop at every milestone from our first strategy call to post-launch scaling.
-        </p>
-      </div>
+      <div className="flex flex-col lg:flex-row items-start justify-between gap-16">
+        {/* Left Column: Heading, description, CTA */}
+        <div className="flex flex-col items-start max-w-[720px]">
+          {/* Compass Icon Badge */}
+          <div className="flex size-[50px] items-center justify-center rounded-[8px] border-2 border-[#989898] p-2">
+            <svg viewBox="0 0 24 24" fill="none" className="size-6 text-[#2d2f33]" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="#2d2f33" />
+            </svg>
+          </div>
 
-      {/* 4 Colored Phase Cards Grid */}
-      <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
-        {PHASES.map((phase, index) => {
-          const isSelected = activePhase === index;
+          <h2 className="mt-8 font-['Poppins',sans-serif] text-[36px] sm:text-[48px] lg:text-[60px] font-medium leading-[1.3] text-[#2d2f33]">
+            How We Bring Your Vision to Life
+          </h2>
 
-          return (
-            <div
-              key={phase.step}
-              onClick={() => setActivePhase(index)}
-              onMouseEnter={() => setActivePhase(index)}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border p-8 sm:p-10 transition-all duration-400 cursor-pointer"
+          <p className="mt-6 font-['Satoshi'] text-[20px] sm:text-[24px] lg:text-[28px] font-normal leading-[1.4] text-black">
+            Four clear phases that keep you in the loop at every milestone from our first strategy call to post-launch scaling.
+          </p>
+
+          <div className="mt-8">
+            <a
+              href="#contact"
+              className="inline-flex h-[59px] items-center justify-center gap-2 rounded-[57px] px-9 py-4 font-['Satoshi'] text-[20px] font-bold text-white shadow-[0px_4px_16px_rgba(104,97,238,0.25)] transition-all duration-300 hover:scale-105"
               style={{
-                background: phase.bgGradient,
-                borderColor: isSelected ? phase.color : phase.borderColor,
-                boxShadow: isSelected
-                  ? `0 16px 40px ${phase.glowColor}`
-                  : "0 4px 20px rgba(0,0,0,0.2)",
+                backgroundImage:
+                  "linear-gradient(171.81deg, rgb(154, 150, 255) 8.4213%, rgb(104, 97, 238) 47.735%, rgb(88, 81, 234) 87.048%)",
               }}
             >
-              {/* Header inside card: Step number & Color aura badge */}
-              <div className="flex items-center justify-between">
-                <span
-                  className="font-[Satoshi] text-[18px] sm:text-[20px] font-bold tracking-wider"
-                  style={{ color: phase.color }}
-                >
-                  PHASE {phase.step}
-                </span>
-                <span
-                  className="rounded-full px-3 py-1 font-[Satoshi] text-[13px] font-semibold tracking-wide"
-                  style={{ backgroundColor: phase.tagBg, color: phase.tagText }}
-                >
-                  PRODUCES
-                </span>
-              </div>
+              <span>Explore AI Capabilities</span>
+              <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
 
-              {/* Title & Description */}
-              <div className="mt-6">
-                <h3 className="font-[Satoshi] text-[26px] sm:text-[30px] font-bold tracking-tight text-white group-hover:text-white">
-                  {phase.title}
-                </h3>
-                <p className="mt-3 font-[Satoshi] text-[15px] sm:text-[16px] font-normal leading-[1.5] text-white/70">
-                  {phase.description}
-                </p>
-              </div>
+        {/* Right Column: Layered Folder Card Component */}
+        <div className="relative w-full max-w-[910px] min-h-[620px]">
+          {/* Top Tabs Bar */}
+          <div className="flex items-end gap-2 pl-4 -mb-1 relative z-20 overflow-x-auto">
+            {PHASES.map((p) => {
+              const isActive = p.id === activeId;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setActiveId(p.id)}
+                  className={`px-6 py-3 font-['Satoshi'] text-[17px] font-bold rounded-t-[18px] transition-all duration-200 cursor-pointer border-t-2 border-x-2 ${
+                    isActive
+                      ? "shadow-md -translate-y-1 text-[#2d2f33]"
+                      : "opacity-75 hover:opacity-100 hover:-translate-y-0.5 text-[#555]"
+                  }`}
+                  style={{
+                    backgroundColor: p.tabColor,
+                    borderColor: p.tabColor,
+                  }}
+                >
+                  {p.title}
+                </button>
+              );
+            })}
+          </div>
 
-              {/* Deliverables tags */}
-              <div className="mt-6 flex flex-wrap gap-2">
-                {phase.produces.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-lg border border-white/10 bg-black/30 px-3 py-1.5 font-[Satoshi] text-[13px] text-white/80 backdrop-blur-sm"
+          {/* Main Folder Body Card */}
+          <div
+            className="relative rounded-[24px] p-8 sm:p-10 shadow-[0_12px_40px_rgba(0,0,0,0.06)] border-2 transition-all duration-300 min-h-[540px] flex flex-col justify-between"
+            style={{
+              backgroundColor: activePhase.tabColor,
+              borderColor: activePhase.tabColor,
+            }}
+          >
+            {/* Header info */}
+            <div>
+              <h3 className="font-['Satoshi'] text-[28px] sm:text-[33px] font-bold text-[#2d2f33]">
+                {activePhase.title}
+              </h3>
+
+              <p className="mt-4 font-['Satoshi'] text-[18px] sm:text-[22px] font-medium leading-[1.4] text-[#2d2f33] max-w-[800px]">
+                {activePhase.description}
+              </p>
+            </div>
+
+            {/* Inner White Container */}
+            <div className="mt-8 bg-white rounded-[16px] p-6 sm:p-8 shadow-sm">
+              {/* Tool / AI Icon Row */}
+              <div className="flex items-center gap-4">
+                {activePhase.icons.map((ic, i) => (
+                  <div
+                    key={i}
+                    className="flex size-[60px] sm:size-[72px] items-center justify-center rounded-[16px] text-white font-bold text-[24px] sm:text-[28px] shadow-sm"
+                    style={{ backgroundColor: ic.color }}
                   >
-                    ✓ {item}
-                  </span>
+                    {ic.letter}
+                  </div>
                 ))}
               </div>
 
-              {/* Visual Preview Asset */}
-              <div className="relative mt-8 h-[160px] w-full overflow-hidden rounded-[18px] border border-white/10 bg-black/40">
-                <Image
-                  src={phase.image}
-                  alt={phase.title}
-                  fill
-                  sizes="400px"
-                  className="object-cover object-top opacity-85 transition-transform duration-500 group-hover:scale-105 group-hover:opacity-100"
-                />
+              {/* Produces Tags */}
+              <div className="mt-6">
+                <p className="font-['Satoshi'] text-[18px] sm:text-[20px] font-semibold tracking-wider text-[#989898]">
+                  PRODUCES:
+                </p>
+
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {activePhase.produces.map((prod, i) => (
+                    <span
+                      key={i}
+                      className="rounded-[9px] px-4 py-2.5 font-['Satoshi'] text-[16px] sm:text-[18px] font-medium text-[#4b4b4b]"
+                      style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+                    >
+                      {prod}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-          );
-        })}
+          </div>
+        </div>
       </div>
     </section>
   );

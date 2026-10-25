@@ -31,6 +31,7 @@
 @theme inline {
   --color-hero-ink: var(--hero-ink-300);
   --font-satoshi: var(--font-satoshi);
+  --font-poppins: "Poppins", sans-serif;
 }
 
 html,

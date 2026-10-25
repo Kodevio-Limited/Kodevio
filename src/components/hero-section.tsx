@@ -23,7 +23,7 @@ function ChevronDown({ className = "h-5 w-[19px]" }: { className?: string }) {
     <svg viewBox="0 0 19 20" fill="none" className={className} aria-hidden="true">
       <path
         d="M15.4356 6.6582L9.5 12.748L3.56436 6.6582C3.45834 6.54952 3.3162 6.48869 3.16821 6.48869C3.02023 6.48869 2.87809 6.54952 2.77207 6.6582C2.6627 6.76902 2.60156 6.91745 2.60156 7.07195C2.60156 7.22645 2.6627 7.37488 2.77207 7.4857L9.08623 13.9492C9.19705 14.0626 9.34548 14.126 9.5 14.126C9.65452 14.126 9.80295 14.0626 9.91377 13.9492L16.2279 7.4857C16.3373 7.37488 16.3984 7.22645 16.3984 7.07195C16.3984 6.91745 16.3373 6.76902 16.2279 6.6582C16.1219 6.54952 15.9798 6.48869 15.8318 6.48869C15.6838 6.48869 15.5416 6.54952 15.4356 6.6582Z"
-        fill="#686868"
+        fill="#e9e9e9"
       />
     </svg>
   );
@@ -113,10 +113,10 @@ export default function HeroSection({
       style={{ height: "100svh" }}
     >
       {/*
-        Looping animation: reverse-flow (forward + backward) version of the
-        reference clip. First and last frames are near-identical, so the
-        native `loop` restarts with no snap and no frozen-frame hitch.
-        Cache-busted filename (v2) so browsers fetch the new seamless file.
+        The original Kodevio hero clip (Assets/Hero/Hero animation.mp4),
+        1920×1080 24fps — full quality, no downscale/ping-pong re-encode.
+        object-cover + object-top matches the Figma image framing
+        (node 324:23971: full-bleed, slightly zoomed past the top edge).
       */}
       <div className="absolute inset-0" aria-hidden="true">
         <Image
@@ -125,12 +125,12 @@ export default function HeroSection({
           fill
           priority
           sizes="100vw"
-          className="hero-poster-fallback origin-top scale-[1.15] object-cover object-top opacity-100"
+          className="hero-poster-fallback object-cover object-top opacity-100"
         />
         <video
           ref={videoRef}
-          className="hero-video absolute inset-0 h-full w-full origin-top scale-[1.15] object-cover object-top"
-          src="/hero/hero-loop-v2.mp4"
+          className="hero-video absolute inset-0 h-full w-full object-cover object-top"
+          src="/hero/hero-original.mp4"
           poster="/hero/hero-poster.jpg"
           autoPlay
           muted
@@ -166,22 +166,25 @@ export default function HeroSection({
         >
           <a href="#" aria-label="Kodevio home" className="shrink-0">
             <Image
-              src="/hero/logo.png"
+              src="/brand/logo_raw.png"
               alt="Kodevio"
               width={141}
               height={33}
               priority
-              className="h-[33px] w-[141px] object-contain"
+              unoptimized
+              className="h-[33px] w-[141px] object-contain [filter:brightness(0)_invert(1)]"
             />
           </a>
 
-          {/* Desktop links — Satoshi Regular 20px #686868, gap 59px */}
-          <ul className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-[59px] lg:flex">
+          {/* Desktop links — Satoshi Regular 20px #686868, gap 59px.
+              Figma 324:23973: group spans x288.5–839.5, i.e. its center is
+              15.5px left of the nav's center. */}
+          <ul className="absolute top-1/2 left-[calc(50%-15.5px)] hidden -translate-x-1/2 -translate-y-1/2 items-center gap-[59px] lg:flex">
             {NAV_LINKS.map((link) => (
               <li key={link.label}>
                 <a
                   href="#"
-                  className="flex items-center gap-[3px] font-[Satoshi] text-[20px] leading-[1.4] font-normal text-[#686868] transition-colors hover:text-black"
+                  className="flex items-center gap-[3px] font-[Satoshi] text-[20px] leading-[1.4] font-medium text-[#e9e9e9] transition-colors hover:text-white"
                 >
                   {link.label}
                   {link.hasMenu && <ChevronDown />}
@@ -293,9 +296,10 @@ export default function HeroSection({
         </div>
       </div>
 
-      {/* Bottom white dissolve — Figma frame 324:23998 (h 258 @1920): transparent → white 79% → white */}
+      {/* Bottom white dissolve — Figma 324:23974: last 25% of the hero
+          (345px of 1378), transparent → white 79% at 69.13% → white */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[clamp(140px,19vh,258px)]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[clamp(200px,25vh,345px)]"
         aria-hidden="true"
         style={{ background: "var(--hero-fade-bottom)" }}
       />

@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="84" height="84" viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group 1171276358">
+<circle id="Ellipse 661" cx="42" cy="42" r="42" fill="url(#paint0_linear_0_76)"/>
+<g id="weui:arrow-outlined">
+<path id="Vector" d="M35.291 32.5156L37.1477 30.6606L47.261 40.7704C47.424 40.9324 47.5534 41.125 47.6417 41.3372C47.7299 41.5494 47.7754 41.7769 47.7754 42.0067C47.7754 42.2366 47.7299 42.4641 47.6417 42.6763C47.5534 42.8885 47.424 43.0811 47.261 43.2431L37.1477 53.3581L35.2927 51.5031L44.7847 42.0094L35.291 32.5156Z" fill="white"/>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_76" x1="51.5644" y1="-26.339" x2="107.096" y2="47.604" gradientUnits="userSpaceOnUse">
+<stop stop-color="#9A96FF"/>
+<stop offset="0.5" stop-color="#6861EE"/>
+<stop offset="1" stop-color="#5851EA"/>
+</linearGradient>
+</defs>
+</svg>

@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="akar-icons:folder">
+<path id="Vector" d="M27.5 23.75V11.25C27.5 10.587 27.2366 9.95107 26.7678 9.48223C26.2989 9.01339 25.663 8.75 25 8.75H16.545C16.0806 8.74998 15.6254 8.62063 15.2305 8.37645C14.8355 8.13226 14.5163 7.78289 14.3087 7.3675L13.1913 5.1325C12.9836 4.71692 12.6642 4.36742 12.269 4.12322C11.8738 3.87902 11.4183 3.74978 10.9537 3.75H5C4.33696 3.75 3.70107 4.01339 3.23223 4.48223C2.76339 4.95107 2.5 5.58696 2.5 6.25V23.75C2.5 24.413 2.76339 25.0489 3.23223 25.5178C3.70107 25.9866 4.33696 26.25 5 26.25H25C25.663 26.25 26.2989 25.9866 26.7678 25.5178C27.2366 25.0489 27.5 24.413 27.5 23.75Z" stroke="url(#paint0_linear_0_13)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_13" x1="17.8465" y1="-3.30509" x2="32.2184" y2="17.958" gradientUnits="userSpaceOnUse">
+<stop stop-color="#9A96FF"/>
+<stop offset="0.5" stop-color="#6861EE"/>
+<stop offset="1" stop-color="#5851EA"/>
+</linearGradient>
+</defs>
+</svg>
