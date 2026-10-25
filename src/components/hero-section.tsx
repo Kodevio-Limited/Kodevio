@@ -74,7 +74,11 @@ const NAV_LINKS = [
   { label: "Company", hasMenu: true },
 ];
 
-export default function HeroSection() {
+export default function HeroSection({
+  isEntered = true,
+}: {
+  isEntered?: boolean;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -94,8 +98,13 @@ export default function HeroSection() {
 
   return (
     <section
+      id="hero"
       aria-label="Kodevio hero"
-      className="relative min-h-[620px] w-full overflow-hidden rounded-[27px] bg-[#87b5d6]"
+      className={`relative min-h-[620px] w-full overflow-hidden rounded-[27px] bg-[#87b5d6] transition-transform duration-[1250ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+        isEntered
+          ? "translate-y-0"
+          : "translate-y-full"
+      }`}
       style={{ height: "100svh" }}
     >
       {/*

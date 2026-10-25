@@ -86,6 +86,121 @@ body {
   animation-delay: 0.42s;
 }
 
+/* ---- Luxury Splash Screen 3D Turnaround & Color Infusion ---- */
+@keyframes logo-360-pop {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) translateY(220px) rotateY(360deg) scale(0.65);
+    filter: blur(8px);
+  }
+  55% {
+    opacity: 1;
+    transform: perspective(1200px) translateY(-8px) rotateY(160deg) scale(1.05);
+    filter: blur(0px);
+  }
+  78% {
+    transform: perspective(1200px) translateY(4px) rotateY(30deg) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1200px) translateY(0px) rotateY(0deg) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes color-reveal {
+  0%, 35% {
+    opacity: 0;
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+  }
+  75% {
+    opacity: 1;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  100% {
+    opacity: 1;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+
+@keyframes light-catch {
+  0%, 40% {
+    transform: translateX(-150%) skewX(-25deg);
+    opacity: 0;
+  }
+  60% {
+    opacity: 0.9;
+  }
+  85%, 100% {
+    transform: translateX(250%) skewX(-25deg);
+    opacity: 0;
+  }
+}
+
+@keyframes ambient-pulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.12);
+  }
+}
+
+.animate-logo-360 {
+  animation: logo-360-pop 1.7s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+.animate-color-reveal {
+  animation: color-reveal 2.2s ease-in-out forwards;
+}
+
+.animate-light-catch {
+  animation: light-catch 2.4s ease-out forwards;
+}
+
+.animate-ambient-pulse {
+  animation: ambient-pulse 3.8s ease-in-out infinite;
+}
+
+/* ---- Pure Butter-Smooth Logo Slide Up (Bottom to ~75% Screen Height) ---- */
+@keyframes logo-smooth-slide-up {
+  0% {
+    transform: translateY(105vh) scale(0.94);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    /* Rests gracefully at ~75% screen height from the bottom (upper 25% area) */
+    transform: translateY(-22vh) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes logo-purple-reveal {
+  0%, 15% {
+    opacity: 0;
+  }
+  85%, 100% {
+    opacity: 1;
+  }
+}
+
+.animate-smooth-slide-up {
+  animation: logo-smooth-slide-up 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-purple-color-infusion {
+  animation: logo-purple-reveal 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-flash-burst {
+  animation: impact-flash-burst 0.7s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-enter,
   .hero-enter-fade {
