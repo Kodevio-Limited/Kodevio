@@ -3,15 +3,25 @@
 import Image from "next/image";
 import { useState } from "react";
 
+/*
+ * Exact geometry from Figma node 324:24031 ("Company Logo"):
+ * 8 cards of 392×192, radius 12, gap 5, solid white.
+ * Logo box per card derived from the design's percentage insets
+ * (card 392×192): width/height in px, rendered as % of card size so
+ * the layout scales fluidly while staying proportional to Figma.
+ */
+const CARD_W = 392;
+const CARD_H = 192;
+
 const COMPANIES = [
-  { id: 1, name: "Company 1", src: "/companies/Compnay1.png", width: 151, height: 42 },
-  { id: 2, name: "Company 2", src: "/companies/compnay2.png", width: 168, height: 48 },
-  { id: 3, name: "Company 3", src: "/companies/compnay3.png", width: 147, height: 44 },
-  { id: 4, name: "Company 4", src: "/companies/compnay4.png", width: 152, height: 40 },
-  { id: 5, name: "Company 5", src: "/companies/compnay5.png", width: 142, height: 46 },
-  { id: 6, name: "Company 6", src: "/companies/compnay6.png", width: 133, height: 44 },
-  { id: 7, name: "Company 7", src: "/companies/compnay7.png", width: 136, height: 44 },
-  { id: 8, name: "Company 8", src: "/companies/Group.png", width: 134, height: 42 },
+  { id: 1, name: "Company 1", src: "/companies/Compnay1.png", w: 151.1, h: 162.2 },
+  { id: 2, name: "Company 2", src: "/companies/compnay2.png", w: 168.5, h: 156.3 },
+  { id: 3, name: "Company 3", src: "/companies/compnay3.png", w: 147.2, h: 164.1 },
+  { id: 4, name: "Company 4", src: "/companies/compnay4.png", w: 151.6, h: 123.4 },
+  { id: 5, name: "Company 5", src: "/companies/compnay5.png", w: 107.3, h: 152.3 },
+  { id: 6, name: "Company 6", src: "/companies/compnay6.png", w: 133.0, h: 134.9 },
+  { id: 7, name: "Company 7", src: "/companies/compnay7.png", w: 135.8, h: 153.9 },
+  { id: 8, name: "Company 8", src: "/companies/Group.png", w: 134.0, h: 169.8 },
 ];
 
 function CompanyCard({
@@ -21,33 +31,32 @@ function CompanyCard({
 }) {
   const [isFlipping, setIsFlipping] = useState(false);
 
-  const handleMouseEnter = () => {
-    setIsFlipping(true);
-  };
-
-  const handleAnimationEnd = () => {
-    setIsFlipping(false);
-  };
-
   return (
     <div
-      onMouseEnter={handleMouseEnter}
-      className="group relative flex h-[160px] sm:h-[192px] items-center justify-center rounded-[20px] border border-black/[0.06] bg-white/[0.6] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] backdrop-blur-sm transition-all duration-300 hover:border-[#6861ee]/30 hover:bg-white hover:shadow-[0_12px_32px_rgba(104,97,238,0.12)] cursor-pointer"
-      style={{ perspective: "1000px" }}
+      onMouseEnter={() => setIsFlipping(true)}
+      className="relative flex items-center justify-center overflow-hidden rounded-[12px] bg-white cursor-pointer"
+      style={{
+        aspectRatio: `${CARD_W} / ${CARD_H}`,
+        perspective: "1000px",
+      }}
     >
       <div
-        onAnimationEnd={handleAnimationEnd}
-        className={`relative flex items-center justify-center transition-transform duration-700 ease-out ${
-          isFlipping ? "animate-flip-360" : "group-hover:scale-105"
+        onAnimationEnd={() => setIsFlipping(false)}
+        className={`relative flex items-center justify-center transition-transform duration-300 ease-out ${
+          isFlipping ? "animate-flip-360" : ""
         }`}
         style={{ transformStyle: "preserve-3d" }}
       >
         <Image
           src={company.src}
           alt={company.name}
-          width={company.width}
-          height={company.height}
-          className="max-h-[52px] sm:max-h-[64px] w-auto object-contain brightness-95 contrast-105 transition-all duration-300 group-hover:brightness-105"
+          width={company.w}
+          height={company.h}
+          style={{
+            width: `${(company.w / CARD_W) * 100}%`,
+            height: "auto",
+          }}
+          className="object-contain"
         />
       </div>
     </div>
@@ -59,21 +68,19 @@ export default function CompaniesSection() {
     <section
       id="companies"
       aria-label="Trusted Companies"
-      className="relative mx-auto w-full max-w-[1583px] px-4 py-20 sm:px-8 lg:py-24"
+      className="relative mx-auto w-full max-w-[1583px] px-4 pt-16 pb-20 sm:px-8 sm:pt-20 lg:pt-[84px] lg:pb-[140px]"
     >
-      {/* 8 Companies 2-Row Grid matching Figma node 324:24031 */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6 lg:gap-8">
+      {/* 8 companies, 4×2 grid — Figma: 392×192 cards, 5px gap */}
+      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-[5px]">
         {COMPANIES.map((company) => (
           <CompanyCard key={company.id} company={company} />
         ))}
       </div>
 
-      {/* Subtext headline from Figma node 324:24259 */}
-      <div className="mt-12 text-center sm:mt-16">
-        <p className="font-[Satoshi] text-[18px] sm:text-[22px] font-normal leading-[1.4] text-[#686868] tracking-tight">
-          Chosen by <span className="font-semibold text-black">105+</span> SaaS Startups and Product Teams
-        </p>
-      </div>
+      {/* Caption — Figma 324:24259: Satoshi Medium 20px #989898, 29px below grid */}
+      <p className="mt-[29px] text-center font-[Satoshi] text-[18px] leading-[1.4] font-medium text-[#989898] sm:text-[20px]">
+        Chosen by 105+ SaaS Startups and Product Teams
+      </p>
     </section>
   );
 }

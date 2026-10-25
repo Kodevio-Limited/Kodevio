@@ -4,6 +4,8 @@ import BottomDock from "@/components/bottom-dock";
 import CeoSection from "@/components/ceo-section";
 import CompaniesSection from "@/components/companies-section";
 import HeroSection from "@/components/hero-section";
+import HowWeWorkSection from "@/components/how-we-work";
+import PricingSection from "@/components/pricing-section";
 import SplashScreen from "@/components/splash-screen";
 import { useEffect, useState } from "react";
 
@@ -42,6 +44,8 @@ export default function Home() {
         />
         <CompaniesSection />
         <CeoSection />
+        <PricingSection />
+        <HowWeWorkSection />
         <BottomDock visible={scrolledPastHero} />
       </main>
     </>
