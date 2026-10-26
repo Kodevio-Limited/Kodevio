@@ -108,7 +108,17 @@ export default function ClientReviewSection() {
 
               {/* Bottom Scrim with Name, Title, and Brand */}
               <div className="absolute inset-x-0 bottom-0 p-8 pt-16 bg-gradient-to-t from-black/80 via-black/40 to-transparent backdrop-blur-[2px]">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1.5">
+                  {/* Figma Company Logo Lockup */}
+                  <div className="flex items-center gap-2 mb-1.5 opacity-90">
+                    <div className="size-7 relative shrink-0">
+                      <Image src="/client-reviews/svg_3.svg" alt="Company Logo" fill className="object-contain" />
+                    </div>
+                    <div className="h-4 w-24 relative shrink-0">
+                      <Image src="/client-reviews/svg_2.svg" alt="Company" fill className="object-contain" />
+                    </div>
+                  </div>
+
                   <h3 className="font-['Satoshi'] text-[24px] sm:text-[28px] font-bold text-white leading-tight">
                     {review.name}
                   </h3>

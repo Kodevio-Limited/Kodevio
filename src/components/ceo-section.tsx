@@ -193,8 +193,10 @@ export default function CeoSection() {
       >
         {/* Stat 1: 100% Upwork */}
         <div className="flex flex-col items-center text-center px-6 py-6 lg:border-r lg:border-[#e2e4e8]">
-          <div className="h-[65px] flex items-center justify-center">
-            <Image src="/ceo/Frame.svg" alt="Upwork" width={65} height={65} className="h-[55px] w-auto opacity-80" />
+          <div className="h-[65px] flex items-center justify-center gap-2">
+            <Image src="/ceo/bracket_left.svg" alt="{" width={23} height={61} className="h-[56px] w-auto" />
+            <Image src="/ceo/stat_upwork.svg" alt="Upwork" width={65} height={46} className="h-[46px] w-auto" />
+            <Image src="/ceo/bracket_right.svg" alt="}" width={23} height={61} className="h-[56px] w-auto" />
           </div>
           <h4 className="mt-4 font-['Poppins',sans-serif] text-[46px] sm:text-[52px] font-bold tracking-tight text-[#2d2f33]">
             {scoreUpwork}%
@@ -206,8 +208,10 @@ export default function CeoSection() {
 
         {/* Stat 2: 450+ Fiverr */}
         <div className="flex flex-col items-center text-center px-6 py-6 lg:border-r lg:border-[#e2e4e8]">
-          <div className="h-[65px] flex items-center justify-center">
-            <Image src="/ceo/Frame(1).svg" alt="Fiverr" width={65} height={65} className="h-[55px] w-auto opacity-80" />
+          <div className="h-[65px] flex items-center justify-center gap-2">
+            <Image src="/ceo/bracket_left.svg" alt="{" width={23} height={61} className="h-[56px] w-auto" />
+            <Image src="/ceo/stat_fiverr.svg" alt="Fiverr" width={51} height={54} className="h-[48px] w-auto" />
+            <Image src="/ceo/bracket_right.svg" alt="}" width={23} height={61} className="h-[56px] w-auto" />
           </div>
           <h4 className="mt-4 font-['Poppins',sans-serif] text-[46px] sm:text-[52px] font-bold tracking-tight text-[#2d2f33]">
             {reviewsFiverr}+
@@ -219,8 +223,10 @@ export default function CeoSection() {
 
         {/* Stat 3: Top Rated */}
         <div className="flex flex-col items-center text-center px-6 py-6 lg:border-r lg:border-[#e2e4e8]">
-          <div className="h-[65px] flex items-center justify-center">
-            <Image src="/ceo/Frame(3).svg" alt="Top Rated" width={65} height={65} className="h-[55px] w-auto opacity-80" />
+          <div className="h-[65px] flex items-center justify-center gap-2">
+            <Image src="/ceo/bracket_left.svg" alt="{" width={23} height={61} className="h-[56px] w-auto" />
+            <Image src="/ceo/stat_crown.svg" alt="Top Rated" width={51} height={49} className="h-[46px] w-auto" />
+            <Image src="/ceo/bracket_right.svg" alt="}" width={23} height={61} className="h-[56px] w-auto" />
           </div>
           <h4 className="mt-4 font-['Poppins',sans-serif] text-[42px] sm:text-[50px] font-bold tracking-tight text-[#2d2f33]">
             Top Rated
@@ -232,8 +238,10 @@ export default function CeoSection() {
 
         {/* Stat 4: 5.0 Average Rating */}
         <div className="flex flex-col items-center text-center px-6 py-6">
-          <div className="h-[65px] flex items-center justify-center">
-            <Image src="/ceo/Frame(2).svg" alt="Rating" width={65} height={65} className="h-[55px] w-auto opacity-80" />
+          <div className="h-[65px] flex items-center justify-center gap-2">
+            <Image src="/ceo/bracket_left.svg" alt="{" width={23} height={61} className="h-[56px] w-auto" />
+            <Image src="/ceo/stat_star.svg" alt="Rating" width={54} height={54} className="h-[48px] w-auto" />
+            <Image src="/ceo/bracket_right.svg" alt="}" width={23} height={61} className="h-[56px] w-auto" />
           </div>
           <h4 className="mt-4 font-['Poppins',sans-serif] text-[46px] sm:text-[52px] font-bold tracking-tight text-[#2d2f33]">
             {rating}

@@ -4,30 +4,38 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 const TOP_MOCKUPS = [
-  { id: 1, src: "/pricing/Free Keyboard With Tablet Mockup 1.png", alt: "Tablet Mockup" },
-  { id: 2, src: "/pricing/28c62c9970af4400edf9e0926f3050fc3e9c41f4.png", alt: "iPhone Mockup" },
-  { id: 3, src: "/pricing/2f1da4905dc4a300f9fb86b981ba42d491f6aa38.png", alt: "App Screen" },
-  { id: 4, src: "/pricing/4e04c9f9ce5f3bf450f349eb84a23eddcb39075b.png", alt: "Design Mockup" },
-  { id: 5, src: "/pricing/68b6eab3e496359b7f81e247d1c9db46b565414e.jpg", alt: "Devices Collection" },
-  { id: 6, src: "/pricing/c4fbf36d4385ab83d355f183807b2506e1d24115.png", alt: "UI Showcase" },
-  { id: 7, src: "/pricing/c7fb6603c95cba7362e60c2b519807465a614c79.png", alt: "SaaS Dashboard" },
-  { id: 8, src: "/pricing/fa5f552aca29692de15305d3273d75b95b59919b.png", alt: "Mobile App Flow" },
+  { id: 1, src: "/pricing/iphone16-hand.png", alt: "iPhone 16 Mockup in Hand" },
+  { id: 2, src: "/pricing/keyboard-tablet.png", alt: "Tablet with Keyboard Mockup" },
+  { id: 3, src: "/pricing/iphone13-kit.png", alt: "iPhone 13 App Screen" },
+  { id: 4, src: "/pricing/fca0b16c65191b5b817637fc81ca78475bdcffe2.png", alt: "Purple Mobile Mockup" },
+  { id: 5, src: "/pricing/28c62c9970af4400edf9e0926f3050fc3e9c41f4.png", alt: "Dark Hand Phone Mockup" },
+  { id: 6, src: "/pricing/c7fb6603c95cba7362e60c2b519807465a614c79.png", alt: "Laptop on Couch Mockup" },
+  { id: 7, src: "/pricing/fa5f552aca29692de15305d3273d75b95b59919b.png", alt: "Clean App Screen" },
+  { id: 8, src: "/pricing/billboard-mockup.png", alt: "Outdoor Billboard Mockup" },
+  { id: 9, src: "/pricing/68b6eab3e496359b7f81e247d1c9db46b565414e.jpg", alt: "Wireframe Sketches on Desk" },
+  { id: 10, src: "/pricing/c4fbf36d4385ab83d355f183807b2506e1d24115.png", alt: "App UI Showcase" },
 ];
 
 const BOTTOM_MOCKUPS = [
-  { id: 8, src: "/pricing/fa5f552aca29692de15305d3273d75b95b59919b.png", alt: "Mobile App Flow" },
-  { id: 7, src: "/pricing/c7fb6603c95cba7362e60c2b519807465a614c79.png", alt: "SaaS Dashboard" },
-  { id: 6, src: "/pricing/c4fbf36d4385ab83d355f183807b2506e1d24115.png", alt: "UI Showcase" },
-  { id: 5, src: "/pricing/68b6eab3e496359b7f81e247d1c9db46b565414e.jpg", alt: "Devices Collection" },
-  { id: 4, src: "/pricing/4e04c9f9ce5f3bf450f349eb84a23eddcb39075b.png", alt: "Design Mockup" },
-  { id: 3, src: "/pricing/2f1da4905dc4a300f9fb86b981ba42d491f6aa38.png", alt: "App Screen" },
-  { id: 2, src: "/pricing/28c62c9970af4400edf9e0926f3050fc3e9c41f4.png", alt: "iPhone Mockup" },
-  { id: 1, src: "/pricing/Free Keyboard With Tablet Mockup 1.png", alt: "Tablet Mockup" },
+  { id: 10, src: "/pricing/c4fbf36d4385ab83d355f183807b2506e1d24115.png", alt: "App UI Showcase" },
+  { id: 5, src: "/pricing/28c62c9970af4400edf9e0926f3050fc3e9c41f4.png", alt: "Dark Hand Phone Mockup" },
+  { id: 7, src: "/pricing/fa5f552aca29692de15305d3273d75b95b59919b.png", alt: "Clean App Screen" },
+  { id: 9, src: "/pricing/68b6eab3e496359b7f81e247d1c9db46b565414e.jpg", alt: "Wireframe Sketches on Desk" },
+  { id: 3, src: "/pricing/iphone13-kit.png", alt: "iPhone 13 App Screen" },
+  { id: 8, src: "/pricing/billboard-mockup.png", alt: "Outdoor Billboard Mockup" },
+  { id: 4, src: "/pricing/fca0b16c65191b5b817637fc81ca78475bdcffe2.png", alt: "Purple Mobile Mockup" },
+  { id: 6, src: "/pricing/c7fb6603c95cba7362e60c2b519807465a614c79.png", alt: "Laptop on Couch Mockup" },
+  { id: 1, src: "/pricing/iphone16-hand.png", alt: "iPhone 16 Mockup in Hand" },
+  { id: 2, src: "/pricing/keyboard-tablet.png", alt: "Tablet with Keyboard Mockup" },
 ];
+
+// Exact Y-offsets extracted from Figma node 324:24340 and 324:30296
+const TOP_Y_OFFSETS = [31, 56, 102, 56, 0, 17, 56, 102, 56, 17];
+const BOTTOM_Y_OFFSETS = [85, 46, 0, 46, 85, 102, 46, 0, 46, 71];
 
 export default function PricingSection() {
   const containerRef = useRef<HTMLElement>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0.5);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,48 +52,50 @@ export default function PricingSection() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Calculate dynamic offsets for conveyor movement
-  const topOffset = (scrollProgress - 0.5) * -180;
-  const bottomOffset = (scrollProgress - 0.5) * 180;
+  // Subtle conveyor movement on scroll
+  const topTranslateX = (scrollProgress - 0.5) * -120;
+  const bottomTranslateX = (scrollProgress - 0.5) * 120;
 
   return (
     <section
       ref={containerRef}
       id="pricing"
       aria-label="See Pricing"
-      className="relative w-full overflow-hidden bg-white py-20 sm:py-28"
+      className="relative w-full overflow-hidden bg-white py-16 sm:py-24"
     >
       {/* Top Mockup Row - Wavy Conveyor */}
-      <div className="relative w-full overflow-hidden pb-8">
+      <div className="relative w-full overflow-hidden h-[270px]">
         <div
-          className="flex items-center gap-6 sm:gap-8 will-change-transform transition-transform duration-100 ease-out"
-          style={{ transform: `translateX(${topOffset}px)` }}
+          className="flex items-start gap-[33px] justify-center will-change-transform transition-transform duration-150 ease-out"
+          style={{ transform: `translateX(${topTranslateX}px)` }}
         >
-          {[...TOP_MOCKUPS, ...TOP_MOCKUPS].map((item, idx) => (
-            <div
-              key={`${item.id}-${idx}`}
-              className="relative shrink-0 overflow-hidden rounded-[20px] bg-[#f8f9fa] border border-[#ebebeb] shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-transform duration-300 hover:scale-[1.03]"
-              style={{
-                width: "220px",
-                height: "170px",
-                // Subtle arch wave offset based on index
-                transform: `translateY(${Math.sin((idx / 4) * Math.PI) * 16}px)`,
-              }}
-            >
-              <Image
-                src={item.src}
-                alt={item.alt}
-                fill
-                sizes="240px"
-                className="object-cover"
-              />
-            </div>
-          ))}
+          {TOP_MOCKUPS.map((item, idx) => {
+            const yOffset = TOP_Y_OFFSETS[idx % TOP_Y_OFFSETS.length];
+            return (
+              <div
+                key={`top-${item.id}-${idx}`}
+                className="relative shrink-0 overflow-hidden rounded-[20px] bg-[#f8f9fa] border border-[#ebebeb] shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-transform duration-300 hover:scale-[1.04]"
+                style={{
+                  width: "170px",
+                  height: "160px",
+                  marginTop: `${yOffset}px`,
+                }}
+              >
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  sizes="170px"
+                  className="object-cover"
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* Center Copy Block */}
-      <div className="relative mx-auto my-12 flex max-w-[1000px] flex-col items-center px-6 text-center">
+      <div className="relative mx-auto my-10 flex max-w-[1055px] flex-col items-center px-6 text-center">
         <h2 className="font-['Poppins',sans-serif] text-[34px] sm:text-[46px] md:text-[54px] font-bold leading-[1.25] tracking-tight text-[#2d2f33]">
           Get A Full SaaS Design Team For Less Than Hiring In-House
         </h2>
@@ -109,32 +119,34 @@ export default function PricingSection() {
         </div>
       </div>
 
-      {/* Bottom Mockup Row - Wavy Conveyor in Reverse */}
-      <div className="relative w-full overflow-hidden pt-8">
+      {/* Bottom Mockup Row - Wavy Conveyor Inverted */}
+      <div className="relative w-full overflow-hidden h-[270px]">
         <div
-          className="flex items-center gap-6 sm:gap-8 will-change-transform transition-transform duration-100 ease-out"
-          style={{ transform: `translateX(${bottomOffset}px)` }}
+          className="flex items-start gap-[33px] justify-center will-change-transform transition-transform duration-150 ease-out"
+          style={{ transform: `translateX(${bottomTranslateX}px)` }}
         >
-          {[...BOTTOM_MOCKUPS, ...BOTTOM_MOCKUPS].map((item, idx) => (
-            <div
-              key={`${item.id}-${idx}`}
-              className="relative shrink-0 overflow-hidden rounded-[20px] bg-[#f8f9fa] border border-[#ebebeb] shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-transform duration-300 hover:scale-[1.03]"
-              style={{
-                width: "220px",
-                height: "170px",
-                // Inverted wave arch offset
-                transform: `translateY(${-Math.sin((idx / 4) * Math.PI) * 16}px)`,
-              }}
-            >
-              <Image
-                src={item.src}
-                alt={item.alt}
-                fill
-                sizes="240px"
-                className="object-cover"
-              />
-            </div>
-          ))}
+          {BOTTOM_MOCKUPS.map((item, idx) => {
+            const yOffset = BOTTOM_Y_OFFSETS[idx % BOTTOM_Y_OFFSETS.length];
+            return (
+              <div
+                key={`bottom-${item.id}-${idx}`}
+                className="relative shrink-0 overflow-hidden rounded-[20px] bg-[#f8f9fa] border border-[#ebebeb] shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-transform duration-300 hover:scale-[1.04]"
+                style={{
+                  width: "170px",
+                  height: "160px",
+                  marginTop: `${yOffset}px`,
+                }}
+              >
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  sizes="170px"
+                  className="object-cover"
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
