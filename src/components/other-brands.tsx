@@ -107,54 +107,59 @@ export default function OtherBrandsSection() {
     // Build particle field
     const particles: Particle[] = [];
 
-    // 1. KodeMount logo particles
-    const kmCount = Math.floor(KM_POINTS.length / 2);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // 1. KodeMount logo particles (dot field sampled from the outline)
+    const kmCount = 1500;
     for (let i = 0; i < kmCount; i++) {
-      const normX = KM_POINTS[i * 2];
-      const normY = KM_POINTS[i * 2 + 1];
+      const b = (i % 300) * 2;
+      const jitter = 0.012;
+      const normX = KM_POINTS[b] + (Math.random() - 0.5) * jitter;
+      const normY = KM_POINTS[b + 1] + (Math.random() - 0.5) * jitter;
       particles.push({
-        x: Math.random() * secWidth,
-        y: Math.random() * secHeight,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: (Math.random() - 0.5) * 0.8,
+        x: mountBox.x + normX * mountBox.w,
+        y: mountBox.y + normY * mountBox.h,
+        vx: 0,
+        vy: 0,
         normX,
         normY,
         group: "mount",
-        baseRadius: 2.2 + (i % 6 === 0 ? 0.9 : i % 3 === 0 ? 0.4 : 0),
-        radius: 2.2,
-        color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
+        baseRadius: 0.5 + Math.random() * 0.3,
+        radius: 0.6,
+        color: "#2563eb",
         phase: Math.random() * Math.PI * 2,
         floatSpeed: 0.015 + Math.random() * 0.025,
-        wanderAngle: Math.random() * Math.PI * 2,
-        alpha: 0.55 + Math.random() * 0.2,
+        wanderAngle: 0,
+        alpha: 0.72,
       });
     }
 
     // 2. KodeOrbit logo particles
-    const koCount = Math.floor(KO_POINTS.length / 2);
+    const koCount = 1500;
     for (let i = 0; i < koCount; i++) {
-      const normX = KO_POINTS[i * 2];
-      const normY = KO_POINTS[i * 2 + 1];
+      const b = (i % 300) * 2;
+      const jitter = 0.012;
+      const normX = KO_POINTS[b] + (Math.random() - 0.5) * jitter;
+      const normY = KO_POINTS[b + 1] + (Math.random() - 0.5) * jitter;
       particles.push({
-        x: Math.random() * secWidth,
-        y: Math.random() * secHeight,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: (Math.random() - 0.5) * 0.8,
+        x: orbitBox.x + normX * orbitBox.w,
+        y: orbitBox.y + normY * orbitBox.h,
+        vx: 0,
+        vy: 0,
         normX,
         normY,
         group: "orbit",
-        baseRadius: 2.2 + (i % 6 === 0 ? 0.9 : i % 3 === 0 ? 0.4 : 0),
-        radius: 2.2,
-        color: PARTICLE_COLORS[(i + 2) % PARTICLE_COLORS.length],
+        baseRadius: 0.5 + Math.random() * 0.3,
+        radius: 0.6,
+        color: "#2563eb",
         phase: Math.random() * Math.PI * 2,
         floatSpeed: 0.015 + Math.random() * 0.025,
-        wanderAngle: Math.random() * Math.PI * 2,
-        alpha: 0.55 + Math.random() * 0.2,
+        wanderAngle: 0,
+        alpha: 0.72,
       });
     }
 
-    // 3. Ambient atmospheric particles drifting throughout the section
-    const ambientCount = 120;
+    // 3. No orbiting/ambient particles — only the two logo dot fields.
+    const ambientCount = 0;
     for (let i = 0; i < ambientCount; i++) {
       particles.push({
         x: Math.random() * secWidth,
@@ -175,10 +180,17 @@ export default function OtherBrandsSection() {
     }
 
     let prevTime = performance.now();
+    let isVisible = true;
+    const io = new IntersectionObserver(([e]) => { isVisible = e.isIntersecting; }, { threshold: 0 });
+    io.observe(section);
 
     const loop = (time: number) => {
       const dt = Math.min((time - prevTime) / 16.666, 2.5);
       prevTime = time;
+      if (!isVisible || document.hidden) {
+        animId = requestAnimationFrame(loop);
+        return;
+      }
 
       ctx.clearRect(0, 0, secWidth, secHeight);
 
@@ -187,13 +199,14 @@ export default function OtherBrandsSection() {
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        const isForming = p.group === activeHover;
+        const isForming = p.group !== "ambient";
+        p.phase += 0.01 * dt;
 
         if (isForming) {
           // Snap/accelerate to target logo outline inside its brand box
           const box = p.group === "mount" ? mountBox : orbitBox;
-          const targetX = box.x + p.normX * box.w;
-          const targetY = box.y + p.normY * box.h;
+          const targetX = box.x + p.normX * box.w + Math.sin(p.phase + i) * 1.2;
+          const targetY = box.y + p.normY * box.h + Math.cos(p.phase * 0.9 + i) * 1.2;
 
           const dx = targetX - p.x;
           const dy = targetY - p.y;
@@ -201,21 +214,21 @@ export default function OtherBrandsSection() {
           // Spring physics to snap into dense outline
           p.vx += dx * 0.09 * dt;
           p.vy += dy * 0.09 * dt;
-          p.vx *= Math.pow(0.81, dt);
-          p.vy *= Math.pow(0.81, dt);
+          p.vx *= Math.pow(0.86, dt);
+          p.vy *= Math.pow(0.86, dt);
 
           // Crisp, dense outline visibility
-          p.alpha += (0.95 - p.alpha) * 0.12 * dt;
-          p.radius += (p.baseRadius * 1.2 - p.radius) * 0.12 * dt;
+          p.alpha += (0.85 - p.alpha) * 0.12 * dt;
+          p.radius += (p.baseRadius - p.radius) * 0.12 * dt;
 
           // Liquid ripple if mouse moves across the formed logo
-          if (mouse.active) {
+          if (mouse.active && !reduceMotion) {
             const mdx = p.x - mouse.x;
             const mdy = p.y - mouse.y;
             const dist = Math.hypot(mdx, mdy);
-            const rippleR = 75;
+            const rippleR = 120;
             if (dist < rippleR && dist > 0) {
-              const force = (1 - dist / rippleR) * 4.5;
+              const force = Math.pow(1 - dist / rippleR, 2) * 16;
               p.vx += (mdx / dist) * force * dt;
               p.vy += (mdy / dist) * force * dt;
             }
@@ -282,7 +295,7 @@ export default function OtherBrandsSection() {
           }
 
           // Mouse interaction (Antigravity repulsion throughout the section)
-          if (mouse.active) {
+          if (mouse.active && !reduceMotion) {
             const mdx = p.x - mouse.x;
             const mdy = p.y - mouse.y;
             const dist = Math.hypot(mdx, mdy);
@@ -322,6 +335,7 @@ export default function OtherBrandsSection() {
     return () => {
       cancelAnimationFrame(animId);
       ro.disconnect();
+      io.disconnect();
     };
   }, []);
 
@@ -380,7 +394,7 @@ export default function OtherBrandsSection() {
           {/* Logo target bounding box */}
           <div
             ref={mountBoxRef}
-            className="relative size-[340px] sm:size-[440px] lg:size-[480px] flex items-center justify-center rounded-[32px] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(59,130,246,0.08)] bg-gradient-to-b from-transparent via-[#f8faff]/20 to-transparent"
+            className="relative size-[340px] sm:size-[440px] lg:size-[480px] flex items-center justify-center"
           />
 
           <h3 className="mt-6 font-[Poppins,sans-serif] text-[36px] sm:text-[45px] font-medium text-[#2d2f33] transition-colors duration-300 group-hover:text-[#2563eb]">
@@ -417,7 +431,7 @@ export default function OtherBrandsSection() {
           {/* Logo target bounding box */}
           <div
             ref={orbitBoxRef}
-            className="relative size-[340px] sm:size-[440px] lg:size-[480px] flex items-center justify-center rounded-[32px] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(59,130,246,0.08)] bg-gradient-to-b from-transparent via-[#f8faff]/20 to-transparent"
+            className="relative size-[340px] sm:size-[440px] lg:size-[480px] flex items-center justify-center"
           />
 
           <h3 className="mt-6 font-[Poppins,sans-serif] text-[36px] sm:text-[45px] font-medium text-[#2d2f33] transition-colors duration-300 group-hover:text-[#2563eb]">

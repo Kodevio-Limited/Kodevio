@@ -9,6 +9,7 @@ import HeroSection from "@/components/hero-section";
 import HowWeWorkSection from "@/components/how-we-work";
 import OtherBrandsSection from "@/components/other-brands";
 import WhyBrandsTrustSection from "@/components/why-brands-trust";
+import FooterShowcase from "@/components/footer-showcase";
 import PricingSection from "@/components/pricing-section";
 import SplashScreen from "@/components/splash-screen";
 import SmoothScroll from "@/components/smooth-scroll";
@@ -139,6 +140,9 @@ export default function Home() {
 
         {/* Section 10: Why Brands Trust Us (Figma 678:17744) */}
         <WhyBrandsTrustSection enabled={splashFinished} />
+
+        {/* Last component (Figma 678:17762) */}
+        <FooterShowcase enabled={splashFinished} />
 
         {/* Floating Bottom Navigation Dock */}
         <BottomDock visible={scrolledPastHero} />

@@ -13,7 +13,7 @@ export default function TransitionSection() {
       className="pointer-events-none absolute left-0 top-[-260px] z-20 h-[260px] w-full translate-z-0 [transform:translateZ(0)]"
       style={{
         background:
-          "linear-gradient(to bottom, rgba(248,248,248,0) 0%, rgba(248,248,248,0.85) 65%, #F8F8F8 100%)",
+          "linear-gradient(to bottom, rgba(248,248,248,0) 0%, rgba(248,248,248,0.35) 15%, rgba(248,248,248,0.75) 40%, rgba(248,248,248,0.95) 70%, #F8F8F8 100%)",
       }}
     />
   );

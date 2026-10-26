@@ -19,6 +19,7 @@ const CARDS = [
   { title: "AI Integration", desc: "Our team integrates AI into product experiences where it creates real value — simplifying workflows, improving decisions, and making products smarter and faster.", img: "/what-we-do/raw_1.png", gradient: "from-[#eff6ff] to-[#93c5fd]" },
   { title: "Web Engineering", desc: "We engineer blazingly fast web applications, SaaS dashboards, and marketing websites on modern Next.js and cloud architectures built for scale.", img: "/what-we-do/raw_2.png", gradient: "from-[#f0fdf4] to-[#86efac]" },
   { title: "UI/UX Design", desc: "World-class interface design, design systems, and product experiences that stand out in crowded markets and captivate users at first glance.", img: "/what-we-do/raw_3.png", gradient: "from-[#fff7ed] to-[#fdba74]" },
+  { title: "Logo & Branding", desc: "Logo design, full branding, business branding, 3d logo, custom logo, visual identity, brand strategy, social media branding, and brand guidelines.", img: "/what-we-do/raw_4.png", gradient: "from-[#f5f3ff] to-[#c4b5fd]" },
 ];
 
 export default function WhatWeDoSection({ enabled = true }: { enabled?: boolean }) {
@@ -61,19 +62,18 @@ export default function WhatWeDoSection({ enabled = true }: { enabled?: boolean 
         .to(headingStage, { opacity: 0, ease: "power2.in", duration: 0.35 }, 0.85)
         .to({}, { duration: 0.15 });
 
-      // 2. Cards: in from the right, through to the left, one per step.
+      // 2. Cards: one per scroll step, right → left, each entrance finishes first.
       slides.forEach((slide, i) => {
-        const at = 0.9 + i * 1.2;
+        const at = 0.9 + i * 1.15;
         tl.fromTo(
           slide,
           { xPercent: 110, opacity: 0 },
-          { xPercent: 0, opacity: 1, ease: "power2.out", duration: 0.7 },
+          { xPercent: 0, opacity: 1, ease: "power3.out", duration: 1 },
           at,
-        ).to(
-          slide,
-          { xPercent: -110, opacity: 0, ease: "power2.in", duration: 0.5 },
-          at + 0.7,
         );
+        if (i > 0) {
+          tl.to(slides[i - 1], { opacity: 0, duration: 0.3, ease: "power1.out" }, at);
+        }
       });
 
       tl.to({}, { duration: 0.45 });
