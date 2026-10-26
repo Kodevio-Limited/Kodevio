@@ -1,12 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 /*
- * Exact geometry from Figma node 324:24031 ("Company Logo"):
- * 8 cards of 392×192, radius 12, gap 5, clean white background.
- * Text 20px #989898 "Chosen by 105+ SaaS Startups and Product Teams".
+ * Figma node 324:24031 "Company Logo" (1583 × 446):
+ *  - 2 rows × 4 cards, 392 × 192, 5px gaps, white cards, radius 12
+ *  - 29px below the grid: caption Satoshi Medium 20px #989898
+ *  - section background #F8F8F8
+ *
+ * Reveal (measured on orbix.studio): their hero is `position: sticky` and the
+ * logo section simply scrolls over it — no pin, no transform, no scroll-jacking.
+ * We mirror that: the hero is sticky (page.tsx) and this section overlays it.
+ *
+ * Flip loop (measured on orbix.studio): rotateY in the negative direction,
+ * ~1.05s to travel 180° with a long ease-out tail (≈expo.out), cards staggered
+ * by ~0.22s, each card's next flip ~4.26s after the previous one. Because we
+ * must always end on the same logo (no back-logo design), each card performs a
+ * continuous 360° turn instead of their 180°-hold-180° (see report).
  */
 const CARD_W = 392;
 const CARD_H = 192;
@@ -22,88 +35,132 @@ const COMPANIES = [
   { id: 8, name: "Company 8", src: "/companies/Group.png", w: 134, h: 170 },
 ];
 
-function CompanyCard({
-  company,
-  autoFlip,
-  onAutoFlipEnd,
-}: {
-  company: (typeof COMPANIES)[number];
-  autoFlip: boolean;
-  onAutoFlipEnd: () => void;
-}) {
-  const [isFlipping, setIsFlipping] = useState(false);
+/* Auto flip loop: 360° on Y, 1.2s power2.inOut, 0.25s stagger, 3s rest. */
+const FLIP_DURATION = 1.2;
+const STAGGER = 0.25;
+const REST = 3;
 
+function CompanyCard({ company }: { company: (typeof COMPANIES)[number] }) {
   return (
     <div
-      onMouseEnter={() => setIsFlipping(true)}
-      className="relative flex items-center justify-center overflow-hidden rounded-[12px] bg-white border border-[#f0f0f0] shadow-[0_2px_12px_rgba(0,0,0,0.02)] transition-shadow duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-pointer"
+      className="relative flex items-center justify-center"
       style={{
         aspectRatio: `${CARD_W} / ${CARD_H}`,
-        perspective: "1000px",
+        perspective: "720px",
       }}
     >
-      <div
-        onAnimationEnd={() => {
-          setIsFlipping(false);
-          if (autoFlip) onAutoFlipEnd();
-        }}
-        className={`relative flex items-center justify-center w-full h-full transition-transform duration-300 ease-out ${
-          isFlipping || autoFlip ? "animate-flip-360" : ""
-        }`}
-        style={{ transformStyle: "preserve-3d" }}
-      >
-        {/* Logo sized from Figma's exact per-card geometry (as % of card width) */}
-        <Image
-          src={company.src}
-          alt={company.name}
-          width={company.w}
-          height={company.h}
-          style={{ width: `${(company.w / CARD_W) * 100}%`, height: "auto" }}
-          className="object-contain"
-        />
+      <div className="flip-inner relative flex h-full w-full items-center justify-center [transform-style:preserve-3d]">
+        {/* Front + back faces share the same logo: exactly Orbix's technique
+            (backface hidden), so the mark is never mirrored or blank mid-flip. */}
+        <div className="card-face absolute inset-0 flex items-center justify-center rounded-[12px] bg-white [backface-visibility:hidden]">
+          <Image
+            src={company.src}
+            alt={company.name}
+            width={company.w}
+            height={company.h}
+            style={{ width: `${(company.w / CARD_W) * 100}%`, height: "auto" }}
+            className="object-contain"
+          />
+        </div>
+        <div className="card-face absolute inset-0 flex items-center justify-center rounded-[12px] bg-white [transform:rotateY(180deg)] [backface-visibility:hidden]">
+          <Image
+            src={company.src}
+            alt={company.name}
+            width={company.w}
+            height={company.h}
+            style={{ width: `${(company.w / CARD_W) * 100}%`, height: "auto" }}
+            className="object-contain"
+          />
+        </div>
       </div>
     </div>
   );
 }
 
-export default function CompaniesSection() {
-  /*
-   * Staggered auto-flip: every 3 seconds one card does its 360° flip,
-   * cycling through the grid, so the section stays alive even without hover.
-   */
-  const [autoIdx, setAutoIdx] = useState<number | null>(null);
+export default function CompaniesSection({ enabled = true }: { enabled?: boolean }) {
+  const rootRef = useRef<HTMLElement>(null);
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const ioRef = useRef<IntersectionObserver | null>(null);
+  const syncRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    let i = 0;
-    const timer = setInterval(() => {
-      setAutoIdx(i % COMPANIES.length);
-      i += 1;
-    }, 3000);
-    return () => clearInterval(timer);
-  }, []);
+    if (!enabled) return;
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const cards = gsap.utils.toArray<HTMLElement>(".flip-inner", rootRef.current);
+
+    if (reduce) {
+      gsap.set(cards, { rotationY: 0 });
+      return;
+    }
+
+    let visible = false;
+    let tl: gsap.core.Timeline | null = null;
+
+    const ctx = gsap.context(() => {
+      gsap.set(cards, { transformPerspective: 720, transformOrigin: "50% 50%" });
+
+      tl = gsap.timeline({ repeat: -1, repeatDelay: REST, paused: true });
+      cards.forEach((el, i) => {
+        tl!.fromTo(
+          el,
+          { rotationY: 0 },
+          { rotationY: -360, duration: FLIP_DURATION, ease: "power2.inOut" },
+          i * STAGGER,
+        );
+      });
+      timelineRef.current = tl;
+
+      const sync = () => {
+        if (!tl) return;
+        if (visible && !document.hidden) tl.play();
+        else tl.pause();
+      };
+
+      // Pause when off-screen…
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          visible = entry.isIntersecting;
+          sync();
+        },
+        { threshold: 0.15 },
+      );
+      if (rootRef.current) io.observe(rootRef.current);
+
+      // …and when the tab is hidden.
+      document.addEventListener("visibilitychange", sync);
+      ioRef.current = io;
+      syncRef.current = sync;
+    }, rootRef);
+
+    return () => {
+      ctx.revert();
+      ioRef.current?.disconnect();
+      document.removeEventListener("visibilitychange", syncRef.current ?? (() => {}));
+      timelineRef.current = null;
+    };
+  }, [enabled]);
 
   return (
     <section
+      ref={rootRef}
       id="companies"
       aria-label="Trusted Companies"
-      className="relative mx-auto w-full max-w-[1583px] px-4 pt-16 pb-20 sm:px-8 sm:pt-20 lg:pt-[76px] lg:pb-[100px] bg-white"
+      className="relative z-10 w-full bg-[#F8F8F8] px-4 pt-16 pb-20 sm:px-8 sm:pt-20 lg:pt-[84px] lg:pb-[140px]"
     >
-      {/* 8 companies, 4×2 grid — Figma: 392×192 cards, 5px gap */}
-      <div className="grid grid-cols-2 gap-[5px] sm:grid-cols-4">
-        {COMPANIES.map((company, idx) => (
-          <CompanyCard
-            key={company.id}
-            company={company}
-            autoFlip={autoIdx === idx}
-            onAutoFlipEnd={() => setAutoIdx(null)}
-          />
-        ))}
-      </div>
+      {/* Figma 324:24031 — 1583 wide: 2×4 grid (5px gaps) + 29px + caption */}
+      <div className="mx-auto flex w-full max-w-[1583px] flex-col items-center gap-[29px]">
+        <div className="grid w-full grid-cols-2 gap-[5px] sm:grid-cols-4">
+          {COMPANIES.map((company) => (
+            <CompanyCard key={company.id} company={company} />
+          ))}
+        </div>
 
-      {/* Caption — Figma 324:24259: Satoshi Medium 20px #989898, 29px below grid */}
-      <p className="mt-[29px] text-center font-['Satoshi'] text-[18px] leading-[1.4] font-medium text-[#989898] sm:text-[20px]">
-        Chosen by 105+ SaaS Startups and Product Teams
-      </p>
+        {/* Caption — Satoshi Medium 20px #989898, 29px below the grid */}
+        <p className="w-full text-center font-['Satoshi'] text-[18px] leading-[1.4] font-medium text-[#989898] sm:text-[20px]">
+          Chosen by 105+ SaaS Startups and Product Teams
+        </p>
+      </div>
     </section>
   );
 }

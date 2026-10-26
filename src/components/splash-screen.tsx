@@ -1,13 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface SplashScreenProps {
   onTransitionStart?: () => void;
   onComplete?: () => void;
   durationMs?: number;
 }
+
+const HANDOFF_MS = 1060; // logo reaches mid-screen in brand purple
+const HARD_FALLBACK_MS = 4000; // absolute safety net — never trap the user
 
 export default function SplashScreen({
   onTransitionStart,
@@ -17,32 +20,61 @@ export default function SplashScreen({
   const [isExiting, setIsExiting] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
+  // Callbacks live in refs so a parent re-render can never restart the timers
+  // (that bug left the splash on screen forever).
+  const transitionRef = useRef(onTransitionStart);
+  const completeRef = useRef(onComplete);
   useEffect(() => {
+    transitionRef.current = onTransitionStart;
+  }, [onTransitionStart]);
+  useEffect(() => {
+    completeRef.current = onComplete;
+  }, [onComplete]);
+
+  const finishedRef = useRef(false);
+
+  useEffect(() => {
+    // Lock scrolling behind the splash and always restore it on unmount.
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRootOverflow = root.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    root.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    const finish = () => {
+      if (finishedRef.current) return; // idempotent: run exactly once
+      finishedRef.current = true;
+      setIsFinished(true);
+      completeRef.current?.();
+    };
+
     // 1. Logo smoothly slides up from the bottom towards 75% screen height.
     // 2. While sliding, the color transitions from white to official Kodevio brand purple.
     // 3. At 1060ms: As the logo arrives at 75% height in full Kodevio purple,
     //    trigger the Hero section to physically slide in through the very bottom.
     const handoffTimer = setTimeout(() => {
       setIsExiting(true);
-      onTransitionStart?.();
-    }, 1060);
+      transitionRef.current?.();
+    }, HANDOFF_MS);
 
     // 4. Splash cleanly unmounts at 1600ms as the Hero section completes its slide-up.
-    const finishTimer = setTimeout(() => {
-      setIsFinished(true);
-      onComplete?.();
-    }, durationMs);
+    const finishTimer = setTimeout(finish, durationMs);
+
+    // 5. Hard fallback: even if an asset/font/animation hangs, the site moves on.
+    const fallbackTimer = setTimeout(() => {
+      setIsExiting(true);
+      transitionRef.current?.();
+      finish();
+    }, HARD_FALLBACK_MS);
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         clearTimeout(handoffTimer);
         clearTimeout(finishTimer);
         setIsExiting(true);
-        onTransitionStart?.();
-        setTimeout(() => {
-          setIsFinished(true);
-          onComplete?.();
-        }, 150);
+        transitionRef.current?.();
+        setTimeout(finish, 150);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -50,9 +82,13 @@ export default function SplashScreen({
     return () => {
       clearTimeout(handoffTimer);
       clearTimeout(finishTimer);
+      clearTimeout(fallbackTimer);
       window.removeEventListener("keydown", handleKeyDown);
+      // Unlock the page when the splash ends (or unmounts).
+      root.style.overflow = prevRootOverflow;
+      body.style.overflow = prevBodyOverflow;
     };
-  }, [durationMs, onTransitionStart, onComplete]);
+  }, [durationMs]);
 
   if (isFinished) return null;
 

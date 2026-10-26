@@ -87,6 +87,14 @@ export default function HeroSection({
 
   /* Respect reduced motion: freeze the looping video on its poster frame. */
   useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const apply = () => {
       const v = videoRef.current;
@@ -103,14 +111,18 @@ export default function HeroSection({
     <section
       id="hero"
       aria-label="Kodevio hero"
-      /* Full-bleed per Figma node 324:23968 — no border radius (radius caused
-         dark edges/corners showing the page background beneath) */
-      className={`relative min-h-[620px] w-full overflow-hidden bg-[#87b5d6] transition-transform duration-[1250ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+      /* Full-bleed per Figma node 324:23968 — exact 1378px height on 1920px canvas.
+         Requires scrolling through the full hero height, so the bottom dissolve
+         is placed at the bottom of the 1378px hero and NOT visible on initial load. */
+      className={`relative w-full overflow-hidden bg-[#87b5d6] transition-transform duration-[1250ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
         isEntered
           ? "translate-y-0"
           : "translate-y-full"
       }`}
-      style={{ height: "100svh" }}
+      style={{
+        height: "max(100vh, calc(100vw * 1378 / 1920))",
+        minHeight: "850px",
+      }}
     >
       {/*
         The original Kodevio hero clip (Assets/Hero/Hero animation.mp4),
@@ -120,7 +132,7 @@ export default function HeroSection({
       */}
       <div className="absolute inset-0" aria-hidden="true">
         <Image
-          src="/hero/hero-poster.jpg"
+          src="/hero/hero-figma-2752.png"
           alt=""
           fill
           priority
@@ -131,7 +143,7 @@ export default function HeroSection({
           ref={videoRef}
           className="hero-video absolute inset-0 h-full w-full object-cover object-top"
           src="/hero/hero-original.mp4"
-          poster="/hero/hero-poster.jpg"
+          poster="/hero/hero-figma-2752.png"
           autoPlay
           muted
           loop
@@ -202,7 +214,7 @@ export default function HeroSection({
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
               aria-expanded={menuOpen}
-              aria-label="Toggle menu"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
               className="flex size-[59px] items-center justify-center rounded-full text-[#686868] transition-colors hover:bg-black/5 lg:hidden"
               style={{ backgroundImage: BTN_GRADIENT }}
             >
@@ -296,12 +308,14 @@ export default function HeroSection({
         </div>
       </div>
 
-      {/* Bottom white dissolve — Figma 324:23974: last 25% of the hero
-          (345px of 1378), transparent → white 79% at 69.13% → white */}
+      {/* Bottom white dissolve — Figma 324:23998 (top: 1120px to 1378px, height: 258px) */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[clamp(200px,25vh,345px)]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[258px]"
         aria-hidden="true"
-        style={{ background: "var(--hero-fade-bottom)" }}
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0.85) 75%, #ffffff 100%)",
+        }}
       />
     </section>
   );

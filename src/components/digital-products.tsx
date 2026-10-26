@@ -1,79 +1,125 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const PROJECTS = [
   {
     id: 1,
     title: "Calorie Tracker | Mobile App",
     description:
-      "Lifted is a mobile wellness app designed to - help users stay consistent with their health goals.",
-    image: "/digital-products/raw_0.png",
-    bg: "from-[#ffecd8] to-[#ff8200]",
+      "Lifted is a mobile wellness app designed to help users stay consistent with their health goals.",
+    image: "/digital-products/3f3d7.png",
+    bg: "bg-gradient-to-b from-[#ffecd8] to-[#ff8200]",
+    hasBaseBanner: true,
   },
   {
     id: 2,
     title: "Sales Analytics | SaaS Platform",
     description:
       "A high-velocity dashboard empowering venture-backed revenue teams to track pipeline velocity in real time.",
-    image: "/digital-products/raw_1.png",
-    bg: "from-[#ffe4e1] to-[#ff7f7f]",
+    image: "/digital-products/a4489.png",
+    bg: "bg-[#f5f6f8]",
   },
   {
     id: 3,
     title: "Brand Identity & Merch",
     description:
       "Distinct packaging, design systems, and identity assets for an organic modern streetwear label.",
-    image: "/digital-products/raw_6.png",
-    bg: "from-[#e0f2fe] to-[#38bdf8]",
+    image: "/digital-products/6126f.png",
+    bg: "bg-[#eef2f6]",
   },
   {
     id: 4,
     title: "Fintech Mobile Wallet",
     description:
       "Next-generation contactless payment and asset tracking platform built for instant borderless transfers.",
-    image: "/digital-products/raw_8.png",
-    bg: "from-[#f1f5f9] to-[#94a3b8]",
+    image: "/digital-products/0802a.png",
+    bg: "bg-[#f8fafc]",
   },
   {
     id: 5,
     title: "Cloud Infrastructure Portal",
     description:
       "Self-service enterprise dashboard for orchestrating Kubernetes clusters and monitoring real-time telemetry.",
-    image: "/digital-products/raw_11.png",
-    bg: "from-[#fef3c7] to-[#f59e0b]",
+    image: "/digital-products/488ee.png",
+    bg: "bg-[#f1f5f9]",
   },
   {
     id: 6,
     title: "Logistics & Fleet Dispatch",
     description:
       "On-demand multi-modal delivery routing platform connecting enterprise merchants with local courier fleets.",
-    image: "/digital-products/raw_13.png",
-    bg: "from-[#f3f4f6] to-[#d1d5db]",
+    image: "/digital-products/adc93.png",
+    bg: "bg-[#f4f4f5]",
   },
 ];
 
-export default function DigitalProductsSection() {
+export default function DigitalProductsSection({ enabled = true }: { enabled?: boolean }) {
+  const rootRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!enabled) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const ctx = gsap.context(() => {
+      const items = gsap.utils.toArray<HTMLElement>(".figma-case-card", rootRef.current);
+      gsap.fromTo(
+        items,
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.75,
+          ease: "power3.out",
+          stagger: 0.1,
+          scrollTrigger: {
+            trigger: rootRef.current,
+            start: "top 85%",
+            once: true,
+          },
+        }
+      );
+    }, rootRef);
+
+    return () => ctx.revert();
+  }, [enabled]);
+
   return (
     <section
+      ref={rootRef}
       id="products"
       aria-label="Digital Products"
-      className="relative mx-auto w-full max-w-[1763px] px-6 py-20 sm:px-12 lg:py-28 bg-white"
+      className="relative mx-auto w-full max-w-[1763px] bg-white px-6 py-20 sm:px-12 lg:py-28"
     >
-      {/* Header */}
-      <div className="flex flex-col items-center text-center max-w-[930px] mx-auto">
+      {/* Header matching Figma node 565:577 */}
+      <div className="mx-auto flex max-w-[930px] flex-col items-center text-center">
         {/* Folder Icon Badge */}
         <div className="flex size-[50px] items-center justify-center rounded-[8px] border-2 border-[#9a96ff] p-2">
-          <svg viewBox="0 0 24 24" fill="none" className="size-6 text-[#9a96ff]" stroke="currentColor" strokeWidth="2">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-          </svg>
+          <Image
+            src="/digital-products/a48e9.svg"
+            alt="Folder Icon"
+            width={30}
+            height={30}
+            className="size-[30px]"
+          />
         </div>
 
-        <h2 className="mt-8 font-['Poppins',sans-serif] text-[36px] sm:text-[48px] lg:text-[60px] font-medium leading-[1.3] text-[#2d2f33]">
+        <h2
+          data-reveal
+          className="mt-8 font-['Poppins',sans-serif] text-[36px] sm:text-[48px] lg:text-[60px] font-medium leading-[1.3] text-[#2d2f33]"
+        >
           Digital Products Engineered for Real Business Impact
         </h2>
 
-        <p className="mt-6 font-['Satoshi'] text-[20px] sm:text-[24px] lg:text-[28px] font-normal leading-[1.4] text-black">
+        <p
+          data-reveal
+          className="mt-6 max-w-[908px] font-['Satoshi'] text-[20px] sm:text-[24px] lg:text-[28px] font-normal leading-[1.4] text-black"
+        >
           Explore how we’ve helped ambitious brands design, build, and scale high converting web platforms, mobile apps, and AI-powered solutions.
         </p>
 
@@ -87,59 +133,115 @@ export default function DigitalProductsSection() {
             }}
           >
             <span>See all work</span>
-            <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="2">
-              <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              className="size-5"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path
+                d="M7 17L17 7M17 7H7M17 7V17"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </a>
         </div>
       </div>
 
-      {/* 6 Project Cards Grid (3 columns x 2 rows) */}
-      <div className="mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* 6 Project Cards Grid (3 columns x 2 rows, exact Figma card geometry) */}
+      <div className="mt-16 sm:mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-[27px]">
         {PROJECTS.map((proj) => (
-          <div
+          <a
             key={proj.id}
-            className="group relative flex flex-col justify-between rounded-[24px] border border-[#f0f0f0] bg-white p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all duration-300 hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1"
+            href="#case-study"
+            className="figma-case-card group relative block w-full aspect-[579/564] min-h-[500px] select-none text-left transition-transform duration-300 hover:-translate-y-1.5 focus:outline-none"
           >
-            {/* Card Mockup Visual Container */}
-            <div
-              className={`relative w-full h-[260px] sm:h-[280px] rounded-[16px] overflow-hidden bg-gradient-to-b ${proj.bg} p-4 flex items-center justify-center shadow-inner`}
+            {/* SVG Background: Exact Figma Subtract Path with bottom-right circular cutout */}
+            <svg
+              viewBox="0 0 586.6 571.6"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="none"
+              className="pointer-events-none absolute inset-0 size-full drop-shadow-[0_4px_18px_rgba(0,0,0,0.06)] transition-all duration-300 group-hover:drop-shadow-[0_16px_36px_rgba(104,97,238,0.14)]"
             >
-              <div className="relative w-full h-full">
-                <Image
-                  src={proj.image}
-                  alt={proj.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-contain drop-shadow-xl transition-transform duration-500 group-hover:scale-105"
-                />
+              <path
+                d="M562.8 2.8C573.846 2.8 582.8 11.7543 582.8 22.8V430.131C582.8 445.126 560.123 455.106 545.429 452.116C541.187 451.253 536.797 450.8 532.3 450.8C496.125 450.8 466.8 480.125 466.8 516.3C466.8 520.797 467.253 525.187 468.116 529.429C471.106 544.123 461.126 566.8 446.131 566.8H23.8C12.7543 566.8 3.8 557.846 3.8 546.8V22.8C3.8 11.7543 12.7543 2.8 23.8 2.8H562.8Z"
+                fill="white"
+                className="transition-colors duration-300"
+              />
+            </svg>
+
+            {/* Inner Content Container */}
+            <div className="relative size-full p-4 sm:p-[15px] flex flex-col justify-between">
+              {/* Mockup Container (top: 15px, h: 283px in Figma) */}
+              <div
+                className={`relative w-full h-[50%] min-h-[220px] sm:min-h-[260px] rounded-[10px] overflow-hidden ${proj.bg} flex items-center justify-center shadow-inner`}
+              >
+                {proj.hasBaseBanner && (
+                  <div className="absolute bottom-0 inset-x-0 h-16 pointer-events-none opacity-40">
+                    <Image
+                      src="/digital-products/cc271.png"
+                      alt="Banner base"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+                <div className="relative w-full h-full p-3 sm:p-4">
+                  <Image
+                    src={proj.image}
+                    alt={proj.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-contain drop-shadow-lg transition-transform duration-500 ease-out group-hover:scale-105"
+                  />
+                </div>
+              </div>
+
+              {/* Title & Description (below mockup) */}
+              <div className="px-1 sm:px-2 pt-2 sm:pt-4 flex-1">
+                <h3 className="font-['Satoshi'] text-[21px] sm:text-[23px] lg:text-[25px] font-medium text-black leading-snug">
+                  {proj.title}
+                </h3>
+                <p className="mt-2 font-['Satoshi'] text-[15px] sm:text-[17px] lg:text-[19px] font-normal text-[#2d2f33] leading-[1.4] line-clamp-2">
+                  {proj.description}
+                </p>
+              </div>
+
+              {/* Bottom Cutout Footer Area */}
+              <div className="relative w-full h-[76px] sm:h-[84px] mt-2">
+                {/* Dashed Line (Vector 9): runs across until the cutout begins */}
+                <div className="absolute top-0 left-1 right-[92px] sm:right-[105px] border-b border-dashed border-[#b9b9b9]" />
+
+                {/* "View Case Study" Link text */}
+                <div className="absolute bottom-2 sm:bottom-3 left-1 flex items-center gap-2">
+                  <span className="font-['Satoshi'] text-[17px] sm:text-[19px] font-medium text-[#686868] transition-colors duration-300 group-hover:text-[#6861ee]">
+                    View Case Study
+                  </span>
+                </div>
+
+                {/* Circle Arrow Action Button: Sits inside the cutout (right-0 bottom-0) */}
+                <div className="absolute -bottom-1 -right-1 sm:bottom-0 sm:right-0 size-[80px] sm:size-[92px] lg:size-[100px] flex items-center justify-center rounded-full bg-[#2D2F33] text-white shadow-md transition-all duration-300 group-hover:bg-[#6861ee] group-hover:scale-105 group-hover:shadow-[0_8px_24px_rgba(104,97,238,0.35)]">
+                  <svg
+                    viewBox="0 0 36 36"
+                    fill="none"
+                    className="size-[28px] sm:size-[32px] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+                  >
+                    <path
+                      d="M6 18H30M21 9L30 18L21 27"
+                      stroke="white"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      transform="rotate(-45 18 18)"
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
-
-            {/* Content */}
-            <div className="mt-6 flex flex-col flex-1">
-              <h3 className="font-['Satoshi'] text-[23px] sm:text-[25px] font-bold text-black leading-snug">
-                {proj.title}
-              </h3>
-
-              <p className="mt-3 font-['Satoshi'] text-[16px] sm:text-[18px] font-normal leading-[1.5] text-[#686868]">
-                {proj.description}
-              </p>
-            </div>
-
-            {/* Bottom Dashed Line & Action Button */}
-            <div className="mt-6 pt-5 border-t border-dashed border-[#e5e7eb] flex items-center justify-between">
-              <span className="font-['Satoshi'] text-[17px] font-medium text-[#2d2f33] transition-colors group-hover:text-[#6861ee]">
-                View Case Study
-              </span>
-
-              <div className="flex size-[48px] items-center justify-center rounded-full bg-[#2d2f33] text-white transition-all duration-300 group-hover:bg-[#6861ee] group-hover:scale-110 shadow-sm">
-                <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M7 17L17 7M17 7H7M17 7V17" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-            </div>
-          </div>
+          </a>
         ))}
       </div>
     </section>

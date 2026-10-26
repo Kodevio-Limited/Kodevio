@@ -202,21 +202,63 @@ body {
   animation: impact-flash-burst 0.7s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
 }
 
-/* ---- Company Logo 360 Flip on Hover ---- */
+/* ---- Company Card Full 360 Flip on Hover ---- */
+/* Pure rotation only — no scale() at mid-flip, which downsampled the logo and
+   made the card look blurry during (and just after) the animation. Non-overshooting
+   ease-out: bezier overshoot on rotation makes the rasterized layer shimmer/blur. */
 @keyframes flip-card-360 {
   0% {
-    transform: rotateY(0deg) scale(1);
+    transform: rotateY(0deg);
   }
   50% {
-    transform: rotateY(180deg) scale(0.92);
+    transform: rotateY(180deg);
   }
   100% {
-    transform: rotateY(360deg) scale(1);
+    transform: rotateY(360deg);
   }
 }
 
 .animate-flip-360 {
-  animation: flip-card-360 0.8s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+  animation: flip-card-360 0.55s cubic-bezier(0.33, 0.9, 0.22, 1) forwards;
+}
+
+/* ---- Pinned Company Flip (GSAP ScrollTrigger) ---- */
+/* Soft lift shadow: GSAP animates the --shadow-op CSS variable; the static
+   box-shadow lives on the pseudo-element so compositing stays cheap. */
+.card-face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.1);
+  opacity: var(--shadow-op, 0);
+  pointer-events: none;
+}
+
+/* Cards get promote-hints only while the section is actually pinned. */
+.is-pin-active .flip-inner {
+  will-change: transform;
+}
+
+.is-pin-active .folder-card {
+  will-change: transform, opacity;
+}
+
+/* Accelerated flip — used while the user scrolls during the locked sequence. */
+@keyframes flip-card-360-fast {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(180deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+.animate-flip-360-fast {
+  animation: flip-card-360-fast 0.32s cubic-bezier(0.33, 0.9, 0.22, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -229,5 +271,11 @@ body {
   }
   .hero-poster-fallback {
     opacity: 1 !important;
+  }
+  .animate-flip-360 {
+    animation: none !important;
+  }
+  .animate-flip-360-fast {
+    animation: none !important;
   }
 }

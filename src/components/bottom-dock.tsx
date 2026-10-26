@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const NAV_ITEMS = [
   { label: "Brands", href: "#brands", hasSubmenu: true },
@@ -16,6 +15,24 @@ export default function BottomDock({
   visible?: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  const closeMenu = () => {
+    setClosing(true);
+    window.setTimeout(() => {
+      setMenuOpen(false);
+      setClosing(false);
+    }, 400);
+  };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeMenu();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   return (
     <aside
@@ -31,7 +48,9 @@ export default function BottomDock({
         <div
           role="dialog"
           aria-modal="true"
-          className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-[min(512px,calc(100vw-32px))] rounded-[55px] bg-white p-10 shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-[#eeeeee] animate-fadeIn"
+          className={`absolute bottom-full mb-4 left-1/2 w-[min(512px,calc(100vw-32px))] -translate-x-1/2 rounded-[55px] bg-white p-10 shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-[#eeeeee] transition-all duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)] ${
+            closing ? "opacity-0 translate-y-2 scale-[0.98]" : "opacity-100 translate-y-0 scale-100"
+          }`}
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-4">
@@ -40,10 +59,13 @@ export default function BottomDock({
             </span>
             <button
               type="button"
-              onClick={() => setMenuOpen(false)}
-              className="flex size-9 items-center justify-center rounded-full bg-[#f4f4f4] text-[#666] hover:bg-[#e8e8e8] transition-colors cursor-pointer"
+              onClick={closeMenu}
+              aria-label="Close menu"
+              className="flex size-10 items-center justify-center rounded-full bg-[#f4f4f4] text-[#666] hover:bg-[#e8e8e8] transition-colors duration-[400ms] ease-[cubic-bezier(0.65,0,0.35,1)] cursor-pointer"
             >
-              ✕
+              <svg viewBox="0 0 24 24" fill="none" className="size-4" stroke="currentColor" strokeWidth="2">
+                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+              </svg>
             </button>
           </div>
 
@@ -53,7 +75,7 @@ export default function BottomDock({
               <a
                 key={item.label}
                 href={item.href}
-                onClick={() => setMenuOpen(false)}
+                onClick={closeMenu}
                 className="flex items-center justify-between font-['Satoshi'] text-[28px] sm:text-[31px] font-medium text-black transition-colors hover:text-[#6861ee]"
               >
                 <span>{item.label}</span>
@@ -70,7 +92,7 @@ export default function BottomDock({
           <div className="mt-12">
             <a
               href="#contact"
-              onClick={() => setMenuOpen(false)}
+              onClick={closeMenu}
               className="flex h-[59px] w-full items-center justify-center gap-2 rounded-[57px] font-['Satoshi'] text-[20px] font-bold text-white shadow-[0px_4px_16px_rgba(104,97,238,0.25)] transition-transform hover:scale-[1.02]"
               style={{
                 backgroundImage:
@@ -88,16 +110,13 @@ export default function BottomDock({
 
       {/* Floating Pill Dock (Figma node 369:1446, 464px x 75px, radius 154px, bg #0d0d0d) */}
       <div className="flex h-[75px] w-[min(464px,calc(100vw-32px))] items-center justify-between rounded-[154px] bg-[#0d0d0d] px-6 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-md">
-        {/* Left: Purple Kodevio Mark Logo */}
-        <a href="#" className="flex items-center shrink-0">
-          <Image
-            src="/brand/logo_raw.png"
-            alt="Kodevio"
-            width={34}
-            height={42}
-            unoptimized
-            className="h-[38px] w-auto object-contain [filter:brightness(0)_invert(36%)_sepia(96%)_saturate(4200%)_hue-rotate(233deg)_brightness(102%)_contrast(101%)]"
-          />
+        {/* Left: single key mark (Figma nav logo) */}
+        <a href="#" aria-label="Kodevio home" className="flex items-center shrink-0">
+          <svg viewBox="0 0 40 40" fill="none" className="h-[34px] w-[34px]" aria-hidden="true">
+            <circle cx="13" cy="13" r="8.5" stroke="#6861ee" strokeWidth="5" />
+            <path d="M19 19L33 33" stroke="#6861ee" strokeWidth="5" strokeLinecap="round" />
+            <path d="M27.5 27.5L32 23" stroke="#6861ee" strokeWidth="5" strokeLinecap="round" />
+          </svg>
         </a>
 
         {/* Center: Home Button Capsule */}
@@ -120,7 +139,7 @@ export default function BottomDock({
           <div className="h-7 w-[1px] bg-white/20" />
           <button
             type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
             className="flex items-center gap-2.5 text-white transition-colors hover:text-white/80 active:scale-95 cursor-pointer"
           >
             <svg viewBox="0 0 24 24" fill="none" className="size-5 text-white" stroke="currentColor" strokeWidth="2">

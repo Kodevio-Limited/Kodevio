@@ -1,132 +1,143 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-const OFFERINGS = [
-  {
-    id: "app-dev",
-    title: "App Development",
-    description:
-      "We design user-friendly experiences for iPhone, Android, Flutter, and React Native apps, so your product feels polished, easy to use, and built for growth.",
-    image: "/what-we-do/raw_0.png",
-    gradient: "from-[#f8f2fe] to-[#ce96ff]",
-  },
-  {
-    id: "ai-integration",
-    title: "AI Integration",
-    description:
-      "Our team integrates AI into product experiences where it creates real value simplifying workflows, improving decisions, and making products smarter, faster, and easier to use.",
-    image: "/what-we-do/raw_1.png",
-    gradient: "from-[#eff6ff] to-[#93c5fd]",
-  },
-  {
-    id: "web-dev",
-    title: "Web Engineering",
-    description:
-      "We engineer blazingly fast web applications, SaaS dashboards, and marketing websites built on modern Next.js and cloud architectures designed for uncompromised scale.",
-    image: "/what-we-do/raw_2.png",
-    gradient: "from-[#f0fdf4] to-[#86efac]",
-  },
-  {
-    id: "ui-ux",
-    title: "UI/UX Design",
-    description:
-      "World-class interface design, design systems, and product experiences that stand out in crowded markets and captivate users at first glance.",
-    image: "/what-we-do/raw_3.png",
-    gradient: "from-[#fff7ed] to-[#fdba74]",
-  },
+gsap.registerPlugin(ScrollTrigger);
+
+/*
+ * Figma node 444:2231 — black 1920×1080 stage, icon + heading; service cards
+ * (725×1080) slide in from the right edge and travel to the left, one per
+ * scroll step, after the text reveal.
+ */
+const LINES = ["Everything You Need", "to Design, Build, and", "Scale Digital Products"];
+
+const CARDS = [
+  { title: "App Development", desc: "We design user-friendly experiences for iPhone, Android, Flutter, and React Native apps, so your product feels polished, easy to use, and built for growth.", img: "/what-we-do/raw_0.png", gradient: "from-[#f8f2fe] to-[#ce96ff]" },
+  { title: "AI Integration", desc: "Our team integrates AI into product experiences where it creates real value — simplifying workflows, improving decisions, and making products smarter and faster.", img: "/what-we-do/raw_1.png", gradient: "from-[#eff6ff] to-[#93c5fd]" },
+  { title: "Web Engineering", desc: "We engineer blazingly fast web applications, SaaS dashboards, and marketing websites on modern Next.js and cloud architectures built for scale.", img: "/what-we-do/raw_2.png", gradient: "from-[#f0fdf4] to-[#86efac]" },
+  { title: "UI/UX Design", desc: "World-class interface design, design systems, and product experiences that stand out in crowded markets and captivate users at first glance.", img: "/what-we-do/raw_3.png", gradient: "from-[#fff7ed] to-[#fdba74]" },
 ];
 
-export default function WhatWeDoSection() {
-  const [activeTab, setActiveTab] = useState(0);
+export default function WhatWeDoSection({ enabled = true }: { enabled?: boolean }) {
+  const rootRef = useRef<HTMLElement>(null);
+  const pinRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const ctx = gsap.context(() => {
+      const isReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const lines = gsap.utils.toArray<HTMLElement>(".what-line", rootRef.current);
+      const slides = gsap.utils.toArray<HTMLElement>(".what-slide", rootRef.current);
+
+      if (isReduced) {
+        gsap.set(lines, { opacity: 1, yPercent: 0 });
+        gsap.set(slides, { opacity: 1, xPercent: 0 });
+        return;
+      }
+
+      gsap.set(lines, { opacity: 0, yPercent: 100 });
+      gsap.set(slides, { opacity: 0, xPercent: 110 });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: pinRef.current,
+          start: "top top",
+          end: "+=340%",
+          pin: true,
+          pinSpacing: true,
+          scrub: 0.8,
+          anticipatePin: 1,
+        },
+      });
+
+      const headingStage = rootRef.current!.querySelector<HTMLElement>(".what-heading-stage")!;
+
+      // 1. Text reveal
+      tl.to(lines, { yPercent: 0, opacity: 1, ease: "power3.out", stagger: 0.1, duration: 0.7 }, 0)
+        .to(headingStage, { opacity: 0, ease: "power2.in", duration: 0.35 }, 0.85)
+        .to({}, { duration: 0.15 });
+
+      // 2. Cards: in from the right, through to the left, one per step.
+      slides.forEach((slide, i) => {
+        const at = 0.9 + i * 1.2;
+        tl.fromTo(
+          slide,
+          { xPercent: 110, opacity: 0 },
+          { xPercent: 0, opacity: 1, ease: "power2.out", duration: 0.7 },
+          at,
+        ).to(
+          slide,
+          { xPercent: -110, opacity: 0, ease: "power2.in", duration: 0.5 },
+          at + 0.7,
+        );
+      });
+
+      tl.to({}, { duration: 0.45 });
+    }, rootRef);
+
+    return () => ctx.revert();
+  }, [enabled]);
 
   return (
     <section
+      ref={rootRef}
       id="services"
       aria-label="What We Do"
-      className="relative w-full bg-[#0d0d0d] py-24 sm:py-32 overflow-hidden text-white"
+      className="relative w-full overflow-hidden bg-black"
     >
-      <div className="mx-auto max-w-[1765px] px-6 sm:px-12">
-        {/* Center Header */}
-        <div className="flex flex-col items-center text-center max-w-[850px] mx-auto">
-          {/* AI Sparkle Icon Badge */}
-          <div className="flex size-[50px] items-center justify-center rounded-[8px] border-2 border-[#7974ee] p-2">
-            <svg viewBox="0 0 24 24" fill="none" className="size-6 text-[#7974ee]" stroke="currentColor" strokeWidth="2">
+      <div
+        ref={pinRef}
+        className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-black px-5"
+      >
+        {/* Heading stage */}
+        <div className="what-heading-stage relative z-10 flex w-full max-w-[803px] flex-col items-center gap-[35px] text-center">
+          <div className="what-icon flex size-[50px] shrink-0 items-center justify-center rounded-[8px] border-2 border-[#7974ee]">
+            <svg viewBox="0 0 24 24" fill="none" className="size-[30px] text-[#7974ee]" stroke="currentColor" strokeWidth="2">
               <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z" />
             </svg>
           </div>
 
-          <h2 className="mt-8 font-['Poppins',sans-serif] text-[36px] sm:text-[48px] lg:text-[60px] font-medium leading-[1.3] text-white">
-            Everything You Need to Design, Build, and Scale Digital Products
+          <h2 className="w-full font-['Poppins',sans-serif] text-[34px] font-medium leading-[1.4] text-white sm:text-[46px] lg:text-[60px]">
+            {LINES.map((line, idx) => (
+              <span key={idx} className="block overflow-hidden py-[2px]">
+                <span className="what-line block will-change-transform">{line}</span>
+              </span>
+            ))}
           </h2>
         </div>
 
-        {/* Tab Selection Navigation */}
-        <div className="mt-12 flex justify-center gap-3 flex-wrap">
-          {OFFERINGS.map((item, idx) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setActiveTab(idx)}
-              className={`px-6 py-3 rounded-full font-['Satoshi'] text-[17px] sm:text-[19px] font-medium transition-all duration-200 cursor-pointer ${
-                activeTab === idx
-                  ? "bg-white text-black shadow-lg scale-105"
-                  : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-              }`}
+        {/* Service cards stage */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          {CARDS.map((card) => (
+            <div
+              key={card.title}
+              className="what-card absolute left-1/2 top-1/2 h-[1080px] w-[725px] -translate-x-1/2 -translate-y-1/2 scale-[0.72]"
             >
-              {item.title}
-            </button>
-          ))}
-        </div>
-
-        {/* Active Offering Showcase Display */}
-        <div className="mt-16 mx-auto max-w-[1200px] rounded-[28px] border border-white/10 bg-white/[0.03] p-8 sm:p-14 backdrop-blur-xl">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Info Column */}
-            <div className="lg:col-span-6 flex flex-col items-start">
-              <h3 className="font-['Poppins',sans-serif] text-[38px] sm:text-[48px] lg:text-[54px] font-medium text-white leading-tight">
-                {OFFERINGS[activeTab].title}
-              </h3>
-
-              <p className="mt-6 font-['Satoshi'] text-[20px] sm:text-[22px] leading-[1.5] text-[#f2f2f2]">
-                {OFFERINGS[activeTab].description}
-              </p>
-
-              <div className="mt-8">
+              <div className="what-slide flex h-full w-full flex-col items-center overflow-hidden bg-[#0d0d0d] px-[46px] pt-[142px]">
+                <h3 className="font-['Poppins',sans-serif] text-[57px] font-medium leading-[1.4] text-white">{card.title}</h3>
+                <p className="mt-[26px] text-center font-['Satoshi'] text-[23px] leading-[1.4] text-[#f2f2f2]">{card.desc}</p>
                 <a
                   href="#contact"
-                  className="inline-flex h-[59px] items-center justify-center gap-2 rounded-[57px] px-9 py-4 font-['Satoshi'] text-[20px] font-bold text-white shadow-[0px_4px_16px_rgba(104,97,238,0.35)] transition-all duration-300 hover:scale-105"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(166.67deg, rgb(154, 150, 255) 8.4213%, rgb(104, 97, 238) 47.735%, rgb(88, 81, 234) 87.048%)",
-                  }}
+                  className="pointer-events-auto mt-[37px] inline-flex h-[59px] items-center justify-center gap-2 rounded-[57px] px-[34px] font-['Satoshi'] text-[20px] font-bold text-white"
+                  style={{ backgroundImage: "linear-gradient(166.67deg, rgb(154,150,255) 8.4213%, rgb(104,97,238) 47.735%, rgb(88,81,234) 87.048%)" }}
                 >
-                  <span>See More</span>
+                  See More
                   <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="2">
                     <path d="M7 17L17 7M17 7H7M17 7V17" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </a>
-              </div>
-            </div>
-
-            {/* Visual Column */}
-            <div className="lg:col-span-6 flex justify-center">
-              <div
-                className={`relative w-full max-w-[500px] h-[440px] sm:h-[480px] rounded-[24px] overflow-hidden bg-gradient-to-b ${OFFERINGS[activeTab].gradient} p-6 shadow-2xl flex items-center justify-center`}
-              >
-                <div className="relative w-full h-full">
-                  <Image
-                    src={OFFERINGS[activeTab].image}
-                    alt={OFFERINGS[activeTab].title}
-                    fill
-                    sizes="500px"
-                    className="object-contain drop-shadow-2xl transition-transform duration-500 hover:scale-105"
-                  />
+                <div className={`mt-[68px] h-[475px] w-[502px] shrink-0 overflow-hidden rounded-[16px] bg-gradient-to-b ${card.gradient} p-6`}>
+                  <div className="relative h-full w-full">
+                    <Image src={card.img} alt={card.title} fill sizes="502px" className="object-contain" />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>

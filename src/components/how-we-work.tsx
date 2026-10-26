@@ -1,285 +1,386 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-interface PhaseIcon {
-  name: string;
-  color: string;
-  letter?: string;
-  svgPath?: string;
-  isSvg: boolean;
-}
-
-interface Phase {
-  id: number;
-  phaseNumber: string;
-  tabTitle: string;
-  title: string;
-  description: string;
-  tabColor: string;
-  badgeBg: string;
-  svgFile: string;
-  produces: string[];
-  icons: PhaseIcon[];
-}
-
-const PHASES: Phase[] = [
+/*
+ * Figma node 324:36262 "How we Work" — 1765 × 624, white:
+ *   Left column (723 wide): 50×50 icon, 39px gap, heading Poppins Medium 60/1.4
+ *   (2 lines), 40px gap, body Satoshi 28/1.4 (2 lines), 40px gap, 308×59 CTA.
+ *   Right folder (910×624 at x=855): coloured folder shape, title at (36,45)
+ *   Satoshi 33, body (36,115) Satoshi 23, white panel (36,246) 838×342 r14,
+ *   3 × 115px tool tiles at (35,35)/(187.88,35)/(340.76,35), "PRODUCES:" at
+ *   (35,191) Satoshi Medium 23 #989898, tags at y 251 (h56, r9).
+ *
+ * Motion: pinned; one folder card visible at a time. The Optimise & Grow card
+ * sits on top (matching the Figma stack); scrolling flips it away and brings
+ * the next folder in, each in its own colour. After all four have shown the
+ * pin releases. Scrubbed, so scrolling up reverses the sequence.
+ */
+const PHASES = [
   {
     id: 1,
-    phaseNumber: "01",
-    tabTitle: "Phase 01",
     title: "Discover & Strategy",
     description:
       "We explore your vision, user needs, and competitive market to build an actionable product strategy ensuring every design choice and technical feature drives real business growth.",
-    tabColor: "#F3AFAA",
-    badgeBg: "rgba(243, 175, 170, 0.25)",
-    svgFile: "/how-we-work/folder_peach.svg",
+    folder: "/how-we-work/folder_peach.svg",
+    color: "#F3AFAA",
+    badge: "rgba(243, 175, 170, 0.25)",
     produces: ["Discovery Report", "User Personas", "Content Hierarchy"],
     icons: [
-      { name: "Figma", color: "#F24E1E", letter: "F", isSvg: false },
-      { name: "Notion", color: "#000000", letter: "N", isSvg: false },
-      { name: "Miro", color: "#FFD02F", letter: "M", isSvg: false },
+      { name: "Figma", bg: "#F24E1E", letter: "F", svg: null as string | null },
+      { name: "Notion", bg: "#000000", letter: "N", svg: null },
+      { name: "Miro", bg: "#FFD02F", letter: "M", svg: null },
     ],
   },
   {
     id: 2,
-    phaseNumber: "02",
-    tabTitle: "Phase 02",
     title: "Design & Refine",
     description:
       "We transform strategic goals into beautiful, intuitive interfaces. Through rapid prototyping and continuous feedback, we craft engaging user journeys that reflect your brand identity.",
-    tabColor: "#CDB3FF",
-    badgeBg: "rgba(205, 179, 255, 0.25)",
-    svgFile: "/how-we-work/folder_lavender.svg",
+    folder: "/how-we-work/folder_lavender.svg",
+    color: "#CDB3FF",
+    badge: "rgba(205, 179, 255, 0.25)",
     produces: ["Visual Direction", "UI Screens", "Design System"],
     icons: [
-      { name: "Figma", color: "#A259FF", letter: "F", isSvg: false },
-      { name: "Spline", color: "#FF3366", letter: "S", isSvg: false },
-      { name: "Adobe", color: "#FF0000", letter: "A", isSvg: false },
+      { name: "Figma", bg: "#A259FF", letter: "F", svg: null },
+      { name: "Spline", bg: "#FF3366", letter: "S", svg: null },
+      { name: "Adobe", bg: "#FF0000", letter: "A", svg: null },
     ],
   },
   {
     id: 3,
-    phaseNumber: "03",
-    tabTitle: "Phase 03",
     title: "Build & Integrate",
     description:
       "Our engineering team translates approved designs into scalable, pixel-perfect code using modern tech stacks. We integrate essential APIs, custom AI models, and secure database layers.",
-    tabColor: "#ABDEFE",
-    badgeBg: "rgba(171, 222, 254, 0.25)",
-    svgFile: "/how-we-work/folder_blue.svg",
+    folder: "/how-we-work/folder_blue.svg",
+    color: "#ABDEFE",
+    badge: "rgba(171, 222, 254, 0.25)",
     produces: ["Code Base", "CMS Integration", "Component Docs"],
     icons: [
-      { name: "Next.js", color: "#000000", letter: "N", isSvg: false },
-      { name: "Supabase", color: "#3ECF8E", letter: "S", isSvg: false },
-      { name: "Tailwind", color: "#06B6D4", letter: "T", isSvg: false },
+      { name: "Next.js", bg: "#000000", letter: "N", svg: null },
+      { name: "Supabase", bg: "#3ECF8E", letter: "S", svg: null },
+      { name: "Tailwind", bg: "#06B6D4", letter: "T", svg: null },
     ],
   },
   {
     id: 4,
-    phaseNumber: "04",
-    tabTitle: "Phase 04",
     title: "Optimise & Grow",
     description:
       "We closely study user behavior, implement continuous performance improvements, and refine your product experience to boost engagement and turn more visitors into customers.",
-    tabColor: "#D0F49D",
-    badgeBg: "rgba(208, 244, 157, 0.35)",
-    svgFile: "/how-we-work/folder_green.svg",
+    folder: "/how-we-work/folder_green.svg",
+    color: "#D0F49D",
+    badge: "rgba(208, 244, 157, 0.35)",
     produces: ["CRO Recommendations", "A/B Test Plan", "Launch Report"],
     icons: [
-      {
-        name: "Claude",
-        color: "#D77655",
-        svgPath: "/how-we-work/svg_4.svg",
-        isSvg: true,
-      },
-      {
-        name: "ChatGPT",
-        color: "#0EA982",
-        svgPath: "/how-we-work/svg_12.svg",
-        isSvg: true,
-      },
-      {
-        name: "Ideogram",
-        color: "#eb1000",
-        svgPath: "/how-we-work/ideogram_icon.svg",
-        isSvg: true,
-      },
+      { name: "Claude", bg: "#D77655", letter: "", svg: "/how-we-work/svg_4.svg" },
+      { name: "ChatGPT", bg: "#0EA982", letter: "", svg: "/how-we-work/svg_12.svg" },
+      { name: "Ideogram", bg: "#eb1000", letter: "", svg: "/how-we-work/ideogram_icon.svg" },
     ],
   },
 ];
 
-export default function HowWeWorkSection() {
-  const [activeId, setActiveId] = useState(4);
-  const activePhase = PHASES.find((p) => p.id === activeId) || PHASES[3];
+// Cards animate in phase order (1 → 2 → 3 → 4); later cards paint on top.
+const CARD_ORDER = [...PHASES];
+
+const BUTTON_GRADIENT =
+  "linear-gradient(171.81deg, rgb(154,150,255) 8.4213%, rgb(104,97,238) 47.735%, rgb(88,81,234) 87.048%)";
+
+function FolderCard({
+  phase,
+  compact,
+}: {
+  phase: (typeof PHASES)[number];
+  compact: boolean;
+}) {
+  const iconSize = compact ? 64 : 115;
+
+  return (
+    <div
+      className={`folder-card relative w-full ${
+        compact ? "rounded-[18px] p-5 pb-6" : "h-[624px] w-[910px]"
+      }`}
+      style={compact ? { backgroundColor: phase.color } : undefined}
+    >
+      {/* Folder silhouette (Figma asset) — desktop only, exact shape */}
+      {!compact && (
+        <Image
+          src={phase.folder}
+          alt=""
+          fill
+          sizes="910px"
+          className="pointer-events-none absolute inset-0 h-full w-full object-fill"
+          aria-hidden="true"
+        />
+      )}
+
+      <div className={compact ? "relative" : "absolute left-[36px] top-[45px] w-[848px]"}>
+        <h3
+          className={`font-['Satoshi'] font-bold text-[#2d2f33] ${
+            compact ? "text-[22px]" : "h-[46px] text-[33px] leading-[1.4]"
+          }`}
+        >
+          {phase.title}
+        </h3>
+        <p
+          className={`font-['Satoshi'] font-normal text-[#2d2f33] ${
+            compact ? "mt-2 text-[14px] leading-[1.5]" : "mt-[24px] h-[96px] w-[848px] text-[23px] leading-[1.4]"
+          }`}
+        >
+          {phase.description}
+        </p>
+      </div>
+
+      {/* White panel */}
+      <div
+        className={
+          compact
+            ? "relative mt-4 rounded-[12px] bg-white p-4"
+            : "absolute left-[36px] top-[246px] h-[342px] w-[838px] overflow-hidden rounded-[14px] bg-white"
+        }
+      >
+        <div className={`flex gap-[8.878px] ${compact ? "" : "pl-[35px] pt-[35px]"}`}>
+          {phase.icons.map((icon) => (
+            <div
+              key={icon.name}
+              className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-[18px]"
+              style={{
+                width: iconSize,
+                height: iconSize,
+                backgroundColor: icon.bg,
+              }}
+            >
+              {icon.svg ? (
+                <Image
+                  src={icon.svg}
+                  alt={icon.name}
+                  width={iconSize}
+                  height={iconSize}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-[42px] font-bold text-white">{icon.letter}</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className={compact ? "mt-5" : "absolute left-[35px] top-[191px] w-[613px]"}>
+          <p
+            className={`font-['Satoshi'] font-medium text-[#989898] ${
+              compact ? "text-[12px]" : "text-[23px] leading-[1.4]"
+            }`}
+          >
+            PRODUCES:
+          </p>
+          <div className={`flex flex-nowrap gap-[12px] ${compact ? "mt-2" : "mt-[28px]"}`}>
+            {phase.produces.map((tag) => (
+              <span
+                key={tag}
+                className={`shrink-0 whitespace-nowrap rounded-[9px] font-['Satoshi'] font-medium text-[#4b4b4b] ${
+                  compact ? "px-2 py-1.5 text-[11px]" : "p-[12px] text-[23px] leading-[1.4]"
+                }`}
+                style={{ backgroundColor: phase.badge }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function HowWeWorkSection({ enabled = true }: { enabled?: boolean }) {
+  const rootRef = useRef<HTMLElement>(null);
+  const pinRef = useRef<HTMLDivElement>(null);
+  const blockRef = useRef<HTMLDivElement>(null);
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const sync = () => setCompact(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (compact) {
+      blockRef.current?.style.removeProperty("zoom");
+      return;
+    }
+    const el = blockRef.current;
+    if (!el) return;
+    const apply = () => {
+      const scale = Math.min(1, (window.innerWidth - 48) / 1765, (window.innerHeight - 64) / 624);
+      el.style.setProperty("zoom", String(Math.max(0.5, scale)));
+    };
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, [compact]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const mm = gsap.matchMedia();
+    const ctx = gsap.context(() => {
+      mm.add(
+        {
+          isMotion: "(prefers-reduced-motion: no-preference)",
+          isReduced: "(prefers-reduced-motion: reduce)",
+        },
+        (media) => {
+          const cards = gsap.utils.toArray<HTMLElement>(".folder-card", rootRef.current);
+
+          if (media.conditions?.isReduced) {
+            // Reduced motion: final card visible, no pin.
+            cards.forEach((card, i) => gsap.set(card, { yPercent: 0, opacity: i === cards.length - 1 ? 1 : 0 }));
+            return;
+          }
+
+          // Card states are set by GSAP only (no CSS transforms fighting it).
+          cards.forEach((card, i) => {
+            gsap.set(card, {
+              yPercent: i === 0 ? 0 : 120,
+              opacity: i === 0 ? 1 : 0,
+              rotationY: 0,
+            });
+          });
+
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: pinRef.current,
+              start: "top top",
+              end: "+=240%",
+              pin: true,
+              pinSpacing: true,
+              scrub: 0.7,
+              anticipatePin: 1,
+            },
+          });
+
+          // Card 1 stays put. Each next card slides up over the stack and
+          // settles 24px lower, leaving the layers underneath peeking out.
+          cards.forEach((card, i) => {
+            if (i === 0) return;
+            tl.fromTo(
+              card,
+              { yPercent: 120, opacity: 0 },
+              { yPercent: 0, y: i * 24, opacity: 1, ease: "power3.out", duration: 1 },
+              i - 1,
+            );
+          });
+
+          // Hold once all four are stacked, then release the pin.
+          tl.to({}, { duration: 0.45 });
+
+          return () => {
+            tl.scrollTrigger?.kill();
+            tl.kill();
+          };
+        },
+      );
+    }, rootRef);
+
+    let alive = true;
+    Promise.resolve(document.fonts?.ready)
+      .catch(() => undefined)
+      .then(() => {
+        if (alive) requestAnimationFrame(() => ScrollTrigger.refresh());
+      });
+
+    return () => {
+      alive = false;
+      ctx.revert();
+      mm.revert();
+    };
+  }, [enabled, compact]);
 
   return (
     <section
+      ref={rootRef}
       id="how-we-work"
       aria-label="How We Work"
-      className="relative mx-auto w-full max-w-[1765px] px-6 py-20 sm:px-12 lg:py-28 bg-white"
+      className="relative w-full overflow-hidden bg-white"
     >
-      <div className="flex flex-col lg:flex-row items-start justify-between gap-16">
-        {/* Left Column: Heading, description, CTA */}
-        <div className="flex flex-col items-start max-w-[720px]">
-          {/* Compass Icon Badge */}
-          <div className="flex size-[50px] items-center justify-center rounded-[8px] border-2 border-[#989898] p-2">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              className="size-6 text-[#2d2f33]"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polygon
-                points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"
-                fill="#2d2f33"
-              />
-            </svg>
+      <div
+        ref={pinRef}
+        className="flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-white px-4"
+      >
+        {compact ? (
+          // Distinct keys keep React from reusing the desktop node (which
+          // carries an imperative `zoom` that must not survive into compact).
+          <div key="compact" className="flex w-full max-w-[520px] flex-col gap-8 py-10">
+            <div className="flex flex-col items-start">
+              <div className="flex size-[40px] items-center justify-center rounded-[8px] border-2 border-[#989898]">
+                <svg viewBox="0 0 24 24" fill="none" className="size-5 text-[#2d2f33]" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="#2d2f33" />
+                </svg>
+              </div>
+              <h2 data-reveal className="mt-5 font-['Poppins',sans-serif] text-[28px] font-medium leading-[1.3] text-[#2d2f33]">
+                How We Bring Your Vision to Life
+              </h2>
+              <p data-reveal className="mt-4 font-['Satoshi'] text-[15px] leading-[1.5] text-black">
+                Four clear phases that keep you in the loop at every milestone from our first
+                strategy call to post-launch scaling.
+              </p>
+            </div>
+            <div className="relative h-[640px] overflow-hidden">
+              {CARD_ORDER.map((phase) => (
+                <div key={phase.id} className="absolute inset-x-0 top-0">
+                  <FolderCard phase={phase} compact />
+                </div>
+              ))}
+            </div>
           </div>
+        ) : (
+          <div ref={blockRef} className="relative flex h-[624px] w-[1765px] shrink-0 items-start justify-between">
+            {/* Left column */}
+            <div className="w-[723px] pt-0">
+              <div className="flex size-[50px] items-center justify-center rounded-[8px] border-2 border-[#989898]">
+                <svg viewBox="0 0 24 24" fill="none" className="size-[30px] text-[#2d2f33]" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="#2d2f33" />
+                </svg>
+              </div>
 
-          <h2 className="mt-8 font-['Poppins',sans-serif] text-[36px] sm:text-[48px] lg:text-[60px] font-medium leading-[1.3] text-[#2d2f33]">
-            How We Bring Your Vision to Life
-          </h2>
+              <h2 data-reveal className="mt-[39px] w-[723px] font-['Poppins',sans-serif] text-[60px] font-medium leading-[1.4] text-[#2d2f33]">
+                How We Bring Your Vision to Life
+              </h2>
 
-          <p className="mt-6 font-['Satoshi'] text-[20px] sm:text-[24px] lg:text-[28px] font-normal leading-[1.4] text-black">
-            Four clear phases that keep you in the loop at every milestone from our
-            first strategy call to post-launch scaling.
-          </p>
+              <p data-reveal className="mt-[40px] w-[723px] font-['Satoshi'] text-[28px] font-normal leading-[1.4] text-black">
+                Four clear phases that keep you in the loop at every milestone from our first
+                strategy call to post-launch scaling.
+              </p>
 
-          <div className="mt-8">
-            <a
-              href="#contact"
-              className="inline-flex h-[59px] items-center justify-center gap-2 rounded-[57px] px-9 py-4 font-['Satoshi'] text-[20px] font-bold text-white shadow-[0px_4px_16px_rgba(104,97,238,0.25)] transition-all duration-300 hover:scale-105"
-              style={{
-                backgroundImage:
-                  "linear-gradient(171.81deg, rgb(154, 150, 255) 8.4213%, rgb(104, 97, 238) 47.735%, rgb(88, 81, 234) 87.048%)",
-              }}
-            >
-              <span>Explore AI Capabilities</span>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="size-5"
-                stroke="currentColor"
-                strokeWidth="2"
+              <a
+                href="#contact"
+                className="mt-[40px] inline-flex h-[59px] w-[308px] items-center justify-center gap-[7px] rounded-[57px] font-['Satoshi'] text-[20px] font-bold text-white"
+                style={{ backgroundImage: BUTTON_GRADIENT, boxShadow: "0 4px 8.15px rgba(0,0,0,0.12)" }}
               >
-                <path
-                  d="M5 12h14M12 5l7 7-7 7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </a>
-          </div>
-        </div>
-
-        {/* Right Column: Exact Layered Folder Card Component */}
-        <div className="relative w-full max-w-[910px]">
-          {/* Stacked Folder Tops (Clickable Tabs with Authentic Colors) */}
-          <div className="relative flex flex-col w-full">
-            {/* Top Exposed Folder Lips */}
-            <div className="relative w-full h-[88px] flex flex-col justify-end">
-              {PHASES.map((p, idx) => {
-                const isSelected = p.id === activeId;
-                const offsetTop = idx * 18;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setActiveId(p.id)}
-                    aria-label={`Select ${p.title}`}
-                    className={`absolute left-0 right-0 h-[56px] rounded-t-[28px] transition-all duration-300 text-left px-8 flex items-center justify-between cursor-pointer border-t border-x border-black/5 ${
-                      isSelected
-                        ? "shadow-sm z-30 font-bold"
-                        : "opacity-90 hover:opacity-100 font-medium"
-                    }`}
-                    style={{
-                      top: `${offsetTop}px`,
-                      backgroundColor: p.tabColor,
-                      zIndex: isSelected ? 30 : idx + 1,
-                    }}
-                  >
-                    <span className="font-['Satoshi'] text-[15px] sm:text-[17px] text-[#2d2f33] tracking-wide">
-                      {p.tabTitle}: {p.title}
-                    </span>
-                    <span className="text-[14px] text-[#4b4b4b] font-medium hidden sm:inline">
-                      {isSelected ? "Active" : "Click to view"}
-                    </span>
-                  </button>
-                );
-              })}
+                Explore AI Capabilities
+                <svg viewBox="0 0 24 24" fill="none" className="size-[24px]" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </a>
             </div>
 
-            {/* Active Front Folder Card Body */}
-            <div
-              className="relative z-30 w-full rounded-b-[28px] rounded-t-[12px] p-6 sm:p-10 shadow-[0_16px_48px_rgba(0,0,0,0.06)] border border-black/5 transition-colors duration-300 min-h-[520px] flex flex-col justify-between"
-              style={{
-                backgroundColor: activePhase.tabColor,
-              }}
-            >
-              {/* Header Info */}
-              <div>
-                <h3 className="font-['Satoshi'] text-[28px] sm:text-[36px] font-bold text-[#2d2f33]">
-                  {activePhase.title}
-                </h3>
-
-                <p className="mt-3 font-['Satoshi'] text-[17px] sm:text-[21px] font-normal leading-[1.4] text-[#2d2f33] max-w-[800px]">
-                  {activePhase.description}
-                </p>
-              </div>
-
-              {/* Inner White Container */}
-              <div className="mt-8 bg-white rounded-[18px] p-6 sm:p-8 shadow-sm">
-                {/* Tool / AI Icon Row */}
-                <div className="flex items-center gap-4 sm:gap-6">
-                  {activePhase.icons.map((ic, i) => (
-                    <div
-                      key={i}
-                      className="relative flex size-[72px] sm:size-[96px] items-center justify-center rounded-[14px] sm:rounded-[18px] overflow-hidden shadow-sm transition-transform duration-200 hover:scale-105"
-                      style={{ backgroundColor: ic.color }}
-                    >
-                      {ic.isSvg && ic.svgPath ? (
-                        <Image
-                          src={ic.svgPath}
-                          alt={ic.name}
-                          width={96}
-                          height={96}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-white font-bold text-[28px] sm:text-[36px]">
-                          {ic.letter}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+            {/* Right folder stack — phase 4 ends on top */}
+            <div className="relative h-[700px] w-[910px] overflow-hidden">
+              {CARD_ORDER.map((phase) => (
+                <div key={phase.id} className="absolute inset-0">
+                  <FolderCard phase={phase} compact={false} />
                 </div>
-
-                {/* Produces Tags */}
-                <div className="mt-8">
-                  <p className="font-['Satoshi'] text-[16px] sm:text-[18px] font-semibold tracking-wider text-[#989898]">
-                    PRODUCES:
-                  </p>
-
-                  <div className="mt-3.5 flex flex-wrap gap-3">
-                    {activePhase.produces.map((prod, i) => (
-                      <span
-                        key={i}
-                        className="rounded-[9px] px-5 py-3 font-['Satoshi'] text-[16px] sm:text-[18px] font-medium text-[#4b4b4b] shadow-xs"
-                        style={{ backgroundColor: activePhase.badgeBg }}
-                      >
-                        {prod}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );
