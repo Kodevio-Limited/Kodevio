@@ -112,7 +112,10 @@ export default function Home() {
         </div>
 
         {/* Transition band + Company Logos — slide up over the sticky hero */}
-        <CompanyReveal enabled={splashFinished}>
+        {/* All content after the hero sits on an opaque layer so the sticky hero
+          never shows through at the sides of max-width sections. */}
+      <div className="relative z-10 bg-white">
+      <CompanyReveal enabled={splashFinished}>
           <TransitionSection />
           <CompaniesSection enabled={splashFinished} />
         </CompanyReveal>
@@ -143,6 +146,7 @@ export default function Home() {
 
         {/* Last component (Figma 678:17762) */}
         <FooterShowcase enabled={splashFinished} />
+      </div>
 
         {/* Floating Bottom Navigation Dock */}
         <BottomDock visible={scrolledPastHero} />

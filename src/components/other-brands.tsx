@@ -116,10 +116,10 @@ export default function OtherBrandsSection() {
       const normX = KM_POINTS[b] + (Math.random() - 0.5) * jitter;
       const normY = KM_POINTS[b + 1] + (Math.random() - 0.5) * jitter;
       particles.push({
-        x: mountBox.x + normX * mountBox.w,
-        y: mountBox.y + normY * mountBox.h,
-        vx: 0,
-        vy: 0,
+        x: Math.random() * secWidth,
+        y: Math.random() * secHeight,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
         normX,
         normY,
         group: "mount",
@@ -141,10 +141,10 @@ export default function OtherBrandsSection() {
       const normX = KO_POINTS[b] + (Math.random() - 0.5) * jitter;
       const normY = KO_POINTS[b + 1] + (Math.random() - 0.5) * jitter;
       particles.push({
-        x: orbitBox.x + normX * orbitBox.w,
-        y: orbitBox.y + normY * orbitBox.h,
-        vx: 0,
-        vy: 0,
+        x: Math.random() * secWidth,
+        y: Math.random() * secHeight,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
         normX,
         normY,
         group: "orbit",
@@ -159,7 +159,7 @@ export default function OtherBrandsSection() {
     }
 
     // 3. No orbiting/ambient particles — only the two logo dot fields.
-    const ambientCount = 0;
+    const ambientCount = 320;
     for (let i = 0; i < ambientCount; i++) {
       particles.push({
         x: Math.random() * secWidth,
@@ -171,7 +171,7 @@ export default function OtherBrandsSection() {
         group: "ambient",
         baseRadius: 1.5 + Math.random() * 1.5,
         radius: 1.8,
-        color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
+        color: "#2563eb",
         phase: Math.random() * Math.PI * 2,
         floatSpeed: 0.01 + Math.random() * 0.02,
         wanderAngle: Math.random() * Math.PI * 2,
@@ -199,117 +199,52 @@ export default function OtherBrandsSection() {
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        const isForming = p.group !== "ambient";
+        const isForming = p.group !== "ambient" && p.group === activeHover;
         p.phase += 0.01 * dt;
 
         if (isForming) {
-          // Snap/accelerate to target logo outline inside its brand box
+          // Settle onto the logo outline (plain lerp: no spring wobble/jelly).
           const box = p.group === "mount" ? mountBox : orbitBox;
-          const targetX = box.x + p.normX * box.w + Math.sin(p.phase + i) * 1.2;
-          const targetY = box.y + p.normY * box.h + Math.cos(p.phase * 0.9 + i) * 1.2;
-
-          const dx = targetX - p.x;
-          const dy = targetY - p.y;
-
-          // Spring physics to snap into dense outline
-          p.vx += dx * 0.09 * dt;
-          p.vy += dy * 0.09 * dt;
-          p.vx *= Math.pow(0.86, dt);
-          p.vy *= Math.pow(0.86, dt);
-
-          // Crisp, dense outline visibility
-          p.alpha += (0.85 - p.alpha) * 0.12 * dt;
-          p.radius += (p.baseRadius - p.radius) * 0.12 * dt;
-
-          // Liquid ripple if mouse moves across the formed logo
-          if (mouse.active && !reduceMotion) {
-            const mdx = p.x - mouse.x;
-            const mdy = p.y - mouse.y;
-            const dist = Math.hypot(mdx, mdy);
-            const rippleR = 120;
-            if (dist < rippleR && dist > 0) {
-              const force = Math.pow(1 - dist / rippleR, 2) * 16;
-              p.vx += (mdx / dist) * force * dt;
-              p.vy += (mdy / dist) * force * dt;
-            }
-          }
-        } else if (p.group !== "ambient") {
-          // Constant-speed travel along the brand outline (no random drift).
-          const box = p.group === "mount" ? mountBox : orbitBox;
-          p.phase += 0.00035 * dt;
-          const per = 2 * (box.w + box.h);
-          const d = ((p.normX + p.phase) % 1) * per;
-
-          let tx: number;
-          let ty: number;
-          if (d < box.w) {
-            tx = box.x + d;
-            ty = box.y;
-          } else if (d < box.w + box.h) {
-            tx = box.x + box.w;
-            ty = box.y + (d - box.w);
-          } else if (d < 2 * box.w + box.h) {
-            tx = box.x + box.w - (d - box.w - box.h);
-            ty = box.y + box.h;
-          } else {
-            tx = box.x;
-            ty = box.y + box.h - (d - 2 * box.w - box.h);
-          }
-
-          p.x += (tx - p.x) * 0.12 * dt;
-          p.y += (ty - p.y) * 0.12 * dt;
-          p.alpha += (0.85 - p.alpha) * 0.08 * dt;
-          p.radius += (p.baseRadius - p.radius) * 0.08 * dt;
+          const tx = box.x + p.normX * box.w;
+          const ty = box.y + p.normY * box.h;
+          p.x += (tx - p.x) * 0.16 * dt;
+          p.y += (ty - p.y) * 0.16 * dt;
+          p.vx *= Math.pow(0.7, dt);
+          p.vy *= Math.pow(0.7, dt);
+          p.alpha += (0.95 - p.alpha) * 0.1 * dt;
+          p.radius += (p.baseRadius - p.radius) * 0.1 * dt;
         } else {
-          // Zero-gravity ambient Antigravity float mode
-          p.phase += p.floatSpeed * dt;
-          p.wanderAngle += (Math.random() - 0.5) * 0.12 * dt;
+          // Free-floating random drift (ambient + un-hovered logo particles).
+          p.wanderAngle += (Math.random() - 0.5) * 0.25 * dt;
+          p.vx += Math.cos(p.wanderAngle) * 0.06 * dt;
+          p.vy += Math.sin(p.wanderAngle) * 0.06 * dt;
+          p.vx *= Math.pow(0.97, dt);
+          p.vy *= Math.pow(0.97, dt);
+          p.alpha += (0.55 - p.alpha) * 0.05 * dt;
+          p.radius += (p.baseRadius * 0.9 - p.radius) * 0.05 * dt;
+        }
 
-          // Sinusoidal weightless drift
-          const driftX = Math.cos(p.wanderAngle) * 0.45 + Math.sin(p.phase) * 0.25;
-          const driftY = Math.sin(p.wanderAngle) * 0.45 + Math.cos(p.phase * 0.7) * 0.25;
-
-          p.vx += driftX * 0.1 * dt;
-          p.vy += driftY * 0.1 * dt;
-          p.vx *= Math.pow(0.95, dt);
-          p.vy *= Math.pow(0.95, dt);
-
-          // Soft ambient alpha & radius
-          p.alpha += (0.55 - p.alpha) * 0.06 * dt;
-          p.radius += (p.baseRadius - p.radius) * 0.06 * dt;
-
-          // Soft boundary containment across the section
-          const pad = 20;
-          if (p.x < pad) p.vx += 0.3 * dt;
-          if (p.x > secWidth - pad) p.vx -= 0.3 * dt;
-          if (p.y < pad) p.vy += 0.3 * dt;
-          if (p.y > secHeight - pad) p.vy -= 0.3 * dt;
-
-          // Header exclusion zone: keep Specialist Brands Under One Roof completely clear
-          const headerLeft = secWidth / 2 - 360;
-          const headerRight = secWidth / 2 + 360;
-          const headerBottom = 240;
-          if (p.x > headerLeft && p.x < headerRight && p.y < headerBottom) {
-            p.vy += 0.45 * dt;
-            p.vx += (p.x < secWidth / 2 ? -0.25 : 0.25) * dt;
-          }
-
-          // Mouse interaction (Antigravity repulsion throughout the section)
-          if (mouse.active && !reduceMotion) {
-            const mdx = p.x - mouse.x;
-            const mdy = p.y - mouse.y;
-            const dist = Math.hypot(mdx, mdy);
-            const repelR = 120;
-            if (dist < repelR && dist > 0) {
-              const force = (1 - dist / repelR) * 3.8;
-              p.vx += (mdx / dist) * force * dt;
-              p.vy += (mdy / dist) * force * dt;
-            }
+        // Magnetic repulsion around the cursor (both states).
+        if (mouse.active && !reduceMotion) {
+          const mdx = p.x - mouse.x;
+          const mdy = p.y - mouse.y;
+          const dist = Math.hypot(mdx, mdy);
+          const repelR = 120;
+          if (dist < repelR && dist > 0) {
+            const force = (1 - dist / repelR) * 3.6;
+            p.x += (mdx / dist) * force * dt;
+            p.y += (mdy / dist) * force * dt;
           }
         }
 
         p.x += p.vx * dt;
         p.y += p.vy * dt;
+
+        // Wrap so the field never empties.
+        if (p.x < -20) p.x = secWidth + 20;
+        else if (p.x > secWidth + 20) p.x = -20;
+        if (p.y < -20) p.y = secHeight + 20;
+        else if (p.y > secHeight + 20) p.y = -20;
 
         // Render dot
         ctx.save();

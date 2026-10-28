@@ -414,7 +414,7 @@ export default function CeoSection({ enabled = true }: { enabled?: boolean }) {
           /* ---------- Figma-exact desktop block (1749 × 926) ---------- */
           <div ref={blockRef} className="relative h-[926px] w-[1749px] shrink-0">
             {/* ---- Quote row ---- */}
-            <QuoteMark className="absolute left-0 top-0 -scale-x-100" />
+            <QuoteMark className="absolute left-0 top-0" />
 
             <div className="absolute left-[82px] top-[25px] w-[1477px]">
               <QuoteText />
@@ -424,7 +424,7 @@ export default function CeoSection({ enabled = true }: { enabled?: boolean }) {
               <Profile />
             </div>
 
-            <QuoteMark className="absolute left-[1699px] top-[310px]" />
+            <QuoteMark className="absolute left-[1699px] top-[310px] rotate-180" />
 
             {/* ---- Stats row (top 635 = row 565 + 70 gap) ---- */}
             <div className="absolute left-[25.75px] top-[635px] h-[291px] w-[1697.5px]">

@@ -10,10 +10,13 @@ export default function TransitionSection() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute left-0 top-[-260px] z-20 h-[260px] w-full translate-z-0 [transform:translateZ(0)]"
+      className="pointer-events-none absolute left-0 top-[-222px] z-20 h-[224px] w-full [transform:translateZ(0)]"
       style={{
-        background:
-          "linear-gradient(to bottom, rgba(248,248,248,0) 0%, rgba(248,248,248,0.35) 15%, rgba(248,248,248,0.75) 40%, rgba(248,248,248,0.95) 70%, #F8F8F8 100%)",
+        backgroundColor: "#F8F8F8",
+        maskImage:
+          "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 18%, rgba(0,0,0,0.18) 36%, rgba(0,0,0,0.38) 54%, rgba(0,0,0,0.64) 72%, rgba(0,0,0,0.88) 88%, #000 100%)",
+        WebkitMaskImage:
+          "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 18%, rgba(0,0,0,0.18) 36%, rgba(0,0,0,0.38) 54%, rgba(0,0,0,0.64) 72%, rgba(0,0,0,0.88) 88%, #000 100%)",
       }}
     />
   );

@@ -243,11 +243,11 @@ export default function HowWeWorkSection({ enabled = true }: { enabled?: boolean
             return;
           }
 
-          // Card states are set by GSAP only (no CSS transforms fighting it).
+          // Card states are set by GSAP only; hidden cards sit below the clip.
           cards.forEach((card, i) => {
             gsap.set(card, {
               yPercent: i === 0 ? 0 : 120,
-              opacity: i === 0 ? 1 : 0,
+              opacity: 1,
               rotationY: 0,
             });
           });
@@ -270,8 +270,8 @@ export default function HowWeWorkSection({ enabled = true }: { enabled?: boolean
             if (i === 0) return;
             tl.fromTo(
               card,
-              { yPercent: 120, opacity: 0 },
-              { yPercent: 0, y: i * 24, opacity: 1, ease: "power3.out", duration: 1 },
+              { yPercent: 120 },
+              { yPercent: 0, y: i * 24, ease: "power3.out", duration: 1 },
               i - 1,
             );
           });

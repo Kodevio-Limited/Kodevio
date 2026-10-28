@@ -94,7 +94,7 @@ export default function DigitalProductsSection({ enabled = true }: { enabled?: b
       ref={rootRef}
       id="products"
       aria-label="Digital Products"
-      className="relative mx-auto w-full max-w-[1763px] bg-white px-6 py-20 sm:px-12 lg:py-28"
+      className="relative mx-auto w-full max-w-[1763px] bg-white px-6 sm:px-12 lg:px-0 lg:py-28"
     >
       {/* Header matching Figma node 565:577 */}
       <div className="mx-auto flex max-w-[930px] flex-col items-center text-center">
@@ -151,7 +151,7 @@ export default function DigitalProductsSection({ enabled = true }: { enabled?: b
       </div>
 
       {/* 6 Project Cards Grid (3 columns x 2 rows, exact Figma card geometry) */}
-      <div className="mt-16 sm:mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-[27px]">
+      <div className="mt-16 sm:mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[13px]">
         {PROJECTS.map((proj) => (
           <a
             key={proj.id}
@@ -180,7 +180,7 @@ export default function DigitalProductsSection({ enabled = true }: { enabled?: b
                 className={`relative w-full h-[50%] min-h-[220px] sm:min-h-[260px] rounded-[10px] overflow-hidden ${proj.bg} flex items-center justify-center shadow-inner`}
               >
                 {proj.hasBaseBanner && (
-                  <div className="absolute bottom-0 inset-x-0 h-16 pointer-events-none opacity-40">
+                  <div className="absolute bottom-0 inset-x-0 h-[64px] pointer-events-none">
                     <Image
                       src="/digital-products/cc271.png"
                       alt="Banner base"
@@ -200,34 +200,34 @@ export default function DigitalProductsSection({ enabled = true }: { enabled?: b
                 </div>
               </div>
 
-              {/* Title & Description (below mockup) */}
-              <div className="px-1 sm:px-2 pt-2 sm:pt-4 flex-1">
-                <h3 className="font-['Satoshi'] text-[21px] sm:text-[23px] lg:text-[25px] font-medium text-black leading-snug">
+              {/* Title & Description (Figma: title y320, 25px; copy 21px, 16px gap) */}
+              <div className="px-1 sm:px-2 pt-[22px] flex-1">
+                <h3 className="font-['Satoshi'] text-[21px] sm:text-[23px] lg:text-[25px] font-medium text-black leading-[1.4]">
                   {proj.title}
                 </h3>
-                <p className="mt-2 font-['Satoshi'] text-[15px] sm:text-[17px] lg:text-[19px] font-normal text-[#2d2f33] leading-[1.4] line-clamp-2">
+                <p className="mt-[16px] font-['Satoshi'] text-[15px] sm:text-[18px] lg:text-[21px] font-normal text-[#2d2f33] leading-[1.4] line-clamp-2">
                   {proj.description}
                 </p>
               </div>
 
               {/* Bottom Cutout Footer Area */}
               <div className="relative w-full h-[76px] sm:h-[84px] mt-2">
-                {/* Dashed Line (Vector 9): runs across until the cutout begins */}
-                <div className="absolute top-0 left-1 right-[92px] sm:right-[105px] border-b border-dashed border-[#b9b9b9]" />
+                {/* Dashed Line (Vector 9): 450px wide, starting 10px from the left */}
+                <div className="absolute top-0 left-[10px] right-[119px] border-b border-dashed border-[#b9b9b9]" />
 
-                {/* "View Case Study" Link text */}
-                <div className="absolute bottom-2 sm:bottom-3 left-1 flex items-center gap-2">
+                {/* "View Case Study" — Figma y493, 19px #686868 */}
+                <div className="absolute bottom-[46px] left-[16px] flex items-center gap-2">
                   <span className="font-['Satoshi'] text-[17px] sm:text-[19px] font-medium text-[#686868] transition-colors duration-300 group-hover:text-[#6861ee]">
                     View Case Study
                   </span>
                 </div>
 
-                {/* Circle Arrow Action Button: Sits inside the cutout (right-0 bottom-0) */}
+                {/* Circle Arrow — 100px at (479,464), icon 36px rotated -45° */}
                 <div className="absolute -bottom-1 -right-1 sm:bottom-0 sm:right-0 size-[80px] sm:size-[92px] lg:size-[100px] flex items-center justify-center rounded-full bg-[#2D2F33] text-white shadow-md transition-all duration-300 group-hover:bg-[#6861ee] group-hover:scale-105 group-hover:shadow-[0_8px_24px_rgba(104,97,238,0.35)]">
                   <svg
                     viewBox="0 0 36 36"
                     fill="none"
-                    className="size-[28px] sm:size-[32px] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+                    className="size-[30px] sm:size-[34px] lg:size-[36px] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
                   >
                     <path
                       d="M6 18H30M21 9L30 18L21 27"
