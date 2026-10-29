@@ -12,7 +12,7 @@ export default function TransitionSection() {
       aria-hidden="true"
       className="pointer-events-none absolute left-0 top-[-222px] z-20 h-[224px] w-full [transform:translateZ(0)]"
       style={{
-        backgroundColor: "#F8F8F8",
+        backgroundColor: "#f8f8f8",
         maskImage:
           "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 18%, rgba(0,0,0,0.18) 36%, rgba(0,0,0,0.38) 54%, rgba(0,0,0,0.64) 72%, rgba(0,0,0,0.88) 88%, #000 100%)",
         WebkitMaskImage:

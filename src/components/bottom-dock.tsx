@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const NAV_ITEMS = [
@@ -11,8 +12,11 @@ const NAV_ITEMS = [
 
 export default function BottomDock({
   visible = true,
+  inverted = false,
 }: {
   visible?: boolean;
+  /** Light pill for dark sections — keeps the dock readable on black cards. */
+  inverted?: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -109,23 +113,35 @@ export default function BottomDock({
       )}
 
       {/* Floating Pill Dock (Figma node 369:1446, 464px x 75px, radius 154px, bg #0d0d0d) */}
-      <div className="flex h-[75px] w-[min(464px,calc(100vw-32px))] items-center justify-between rounded-[154px] bg-[#0d0d0d] px-6 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-md">
-        {/* Left: single key mark (Figma nav logo) */}
+      <div
+        className={`flex h-[75px] w-[min(464px,calc(100vw-32px))] items-center justify-between rounded-[154px] px-6 backdrop-blur-md transition-colors duration-300 ${
+          inverted
+            ? "bg-white shadow-[0_8px_32px_rgba(0,0,0,0.18)] ring-1 ring-black/[0.06]"
+            : "bg-[#0d0d0d] shadow-[0_8px_32px_rgba(0,0,0,0.35)]"
+        }`}
+      >
+        {/* Left: official Kodevio logo mark */}
         <a href="#" aria-label="Kodevio home" className="flex items-center shrink-0">
-          <svg viewBox="0 0 40 40" fill="none" className="h-[34px] w-[34px]" aria-hidden="true">
-            <circle cx="13" cy="13" r="8.5" stroke="#6861ee" strokeWidth="5" />
-            <path d="M19 19L33 33" stroke="#6861ee" strokeWidth="5" strokeLinecap="round" />
-            <path d="M27.5 27.5L32 23" stroke="#6861ee" strokeWidth="5" strokeLinecap="round" />
-          </svg>
+          <Image
+            src="/hero/kodevio-logo-icon.svg"
+            alt="Kodevio Logo"
+            width={34}
+            height={42}
+            className="h-[34px] w-auto object-contain"
+          />
         </a>
 
         {/* Center: Home Button Capsule */}
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="flex items-center gap-2.5 rounded-[43px] bg-[#1e1e1e] px-5 py-2.5 text-white transition-all hover:bg-[#282828] active:scale-95 cursor-pointer"
+          className={`flex items-center gap-2.5 rounded-[43px] px-5 py-2.5 transition-colors duration-300 active:scale-95 cursor-pointer ${
+            inverted
+              ? "bg-[#f2f2f2] text-black hover:bg-[#e8e8e8]"
+              : "bg-[#1e1e1e] text-white hover:bg-[#282828]"
+          }`}
         >
-          <svg viewBox="0 0 24 24" fill="none" className="size-5 text-white" stroke="currentColor" strokeWidth="2">
+          <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="2">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
@@ -134,21 +150,30 @@ export default function BottomDock({
           </span>
         </button>
 
-        {/* Right: Divider & Menu Button */}
+        {/* Right: Divider & Menu/Close Button */}
         <div className="flex items-center gap-4">
-          <div className="h-7 w-[1px] bg-white/20" />
+          <div className={`h-7 w-[1px] transition-colors duration-300 ${inverted ? "bg-black/12" : "bg-white/20"}`} />
           <button
             type="button"
             onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
-            className="flex items-center gap-2.5 text-white transition-colors hover:text-white/80 active:scale-95 cursor-pointer"
+            className={`flex items-center gap-2.5 transition-colors duration-300 active:scale-95 cursor-pointer ${
+              inverted ? "text-black hover:text-black/70" : "text-white hover:text-white/80"
+            }`}
           >
-            <svg viewBox="0 0 24 24" fill="none" className="size-5 text-white" stroke="currentColor" strokeWidth="2">
-              <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
-              <line x1="3" y1="12" x2="21" y2="12" strokeLinecap="round" />
-              <line x1="3" y1="18" x2="21" y2="18" strokeLinecap="round" />
-            </svg>
+            {menuOpen ? (
+              <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" strokeLinecap="round" />
+                <line x1="6" y1="6" x2="18" y2="18" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
+                <line x1="3" y1="12" x2="21" y2="12" strokeLinecap="round" />
+                <line x1="3" y1="18" x2="21" y2="18" strokeLinecap="round" />
+              </svg>
+            )}
             <span className="font-['Satoshi'] text-[19px] font-medium leading-[1.4]">
-              Menu
+              {menuOpen ? "Close" : "Menu"}
             </span>
           </button>
         </div>

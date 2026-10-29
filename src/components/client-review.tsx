@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 /*
  * Figma node 502:2113 "Client review" — 1918 × 1088, white:
@@ -16,22 +15,27 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
  *   117px play button at (168, 212).
  *
  * Motion: pinned; the rail glides left as the user scrolls until the last card
- * is centred, then the pin releases. Hover plays that card's video, leaving
- * pauses + resets it. Only one video plays at a time. Tap toggles on touch.
+ * is centred, then the pin releases. Hover plays that card's video with sound,
+ * leaving pauses + resets it. Only one video plays at a time. Tap toggles on
+ * touch (and is the gesture that unlocks audio if hover playback was blocked).
  */
 const REVIEWS = [
-  { id: 1, name: "Stephen Hawkin", role: "CEO @ Oracle", image: "/client-reviews/raw_0.jpeg", video: "/client-reviews/video/review-0.mp4" },
-  { id: 2, name: "Stephen Hawkin", role: "CEO @ Oracle", image: "/client-reviews/raw_3.jpeg", video: "/client-reviews/video/review-3.mp4" },
-  { id: 3, name: "Stephen Hawkin", role: "CEO @ Oracle", image: "/client-reviews/raw_6.jpeg", video: "/client-reviews/video/review-6.mp4" },
-  { id: 4, name: "Stephen Hawkin", role: "CEO @ Oracle", image: "/client-reviews/raw_7.jpeg", video: "/client-reviews/video/review-7.mp4" },
-  { id: 5, name: "Stephen Hawkin", role: "CEO @ Oracle", image: "/client-reviews/raw_9.jpeg", video: "/client-reviews/video/review-9.mp4" },
+  { id: 1, name: "Daniel Brooks", role: "CEO @ Northwind", image: "/client-reviews/posters/poster-0.jpg", video: "/client-reviews/video/review-audio-0.mp4", webm: "/client-reviews/video/review-audio-0.webm" },
+  { id: 2, name: "Liam Carter", role: "CTO @ Founderly", image: "/client-reviews/posters/poster-1.jpg", video: "/client-reviews/video/review-audio-1.mp4", webm: "/client-reviews/video/review-audio-1.webm" },
+  { id: 3, name: "Noah Williams", role: "Founder @ Atlas", image: "/client-reviews/posters/poster-2.jpg", video: "/client-reviews/video/review-audio-2.mp4", webm: "/client-reviews/video/review-audio-2.webm" },
+  { id: 4, name: "Sofia Ramirez", role: "Head of Design @ Bloom", image: "/client-reviews/posters/poster-3.jpg", video: "/client-reviews/video/review-audio-3.mp4", webm: "/client-reviews/video/review-audio-3.webm" },
+  { id: 5, name: "Maya Chen", role: "Product Lead @ Northstar", image: "/client-reviews/posters/poster-4.jpg", video: "/client-reviews/video/review-audio-4.mp4", webm: "/client-reviews/video/review-audio-4.webm" },
+  { id: 6, name: "Ethan Park", role: "COO @ Vector", image: "/client-reviews/posters/poster-5.jpg", video: "/client-reviews/video/review-audio-5.mp4", webm: "/client-reviews/video/review-audio-5.webm" },
+  { id: 7, name: "Marcus Lee", role: "VP Product @ Lumen", image: "/client-reviews/posters/poster-6.jpg", video: "/client-reviews/video/review-audio-6.mp4", webm: "/client-reviews/video/review-audio-6.webm" },
+  { id: 8, name: "Ava Thompson", role: "Marketing Director @ Nova", image: "/client-reviews/posters/poster-7.jpg", video: "/client-reviews/video/review-audio-7.mp4", webm: "/client-reviews/video/review-audio-7.webm" },
 ];
 
 const CARD_W = 454;
 const CARD_H = 657;
 const GAP = 26;
 const RAIL_START = -229;
-const RAIL_MOVE = 227; // brings card 5 flush to the right edge (fully revealed)
+const RAIL_MOVE = 1667; // brings the 8th card flush to the right edge (fully revealed)
+const COMPACT_RAIL_MOVE = 1742;
 
 export default function ClientReviewSection({ enabled = true }: { enabled?: boolean }) {
   const rootRef = useRef<HTMLElement>(null);
@@ -79,7 +83,7 @@ export default function ClientReviewSection({ enabled = true }: { enabled?: bool
         (media) => {
           const rail = railRef.current!;
           if (media.conditions?.isReduced) {
-            gsap.set(rail, { x: compact ? -980 : RAIL_START });
+            gsap.set(rail, { x: compact ? -COMPACT_RAIL_MOVE : RAIL_START });
             return;
           }
 
@@ -87,7 +91,7 @@ export default function ClientReviewSection({ enabled = true }: { enabled?: bool
             scrollTrigger: {
               trigger: pinRef.current,
               start: "top top",
-              end: compact ? "+=170%" : "+=140%",
+              end: compact ? "+=190%" : "+=225%",
               pin: true,
               scrub: 1,
               anticipatePin: 1,
@@ -98,7 +102,7 @@ export default function ClientReviewSection({ enabled = true }: { enabled?: bool
           tl.fromTo(
             rail,
             { x: compact ? 0 : RAIL_START },
-            { x: compact ? -980 : RAIL_START - RAIL_MOVE, ease: "none" },
+            { x: compact ? -COMPACT_RAIL_MOVE : RAIL_START - RAIL_MOVE, ease: "none" },
             0,
           );
 
@@ -123,6 +127,7 @@ export default function ClientReviewSection({ enabled = true }: { enabled?: bool
     if (!video) return;
     video.pause();
     video.currentTime = 0;
+    video.muted = false;
   };
 
   const play = (index: number) => {
@@ -131,8 +136,17 @@ export default function ClientReviewSection({ enabled = true }: { enabled?: bool
     if (playingRef.current && playingRef.current !== video) reset(playingRef.current);
     playingRef.current = video;
     if (video.ended) video.currentTime = 0;
+
+    // Hover playback with sound. If the browser blocks audible autoplay on the
+    // first hover (before any page interaction), fall back to muted playback so
+    // the visual still runs; the next user gesture unlocks the audio.
+    video.muted = false;
+    video.volume = 1;
     void video.play().catch(() => {
-      if (playingRef.current === video) playingRef.current = null;
+      video.muted = true;
+      void video.play().catch(() => {
+        if (playingRef.current === video) playingRef.current = null;
+      });
     });
   };
 
@@ -147,7 +161,8 @@ export default function ClientReviewSection({ enabled = true }: { enabled?: bool
     if (playingRef.current === video) playingRef.current = null;
   };
   const handleTap = (index: number) => {
-    if (!coarsePointer()) return;
+    // Also works with a mouse: if the browser blocked audible hover playback,
+    // this click is the gesture that unlocks sound.
     const video = videoRefs.current[index];
     if (!video) return;
     if (!video.paused) {
@@ -158,7 +173,9 @@ export default function ClientReviewSection({ enabled = true }: { enabled?: bool
     }
   };
   const handleEnded = (index: number) => {
-    if (playingRef.current === videoRefs.current[index]) playingRef.current = null;
+    const video = videoRefs.current[index];
+    if (playingRef.current === video) playingRef.current = null;
+    if (video) video.currentTime = 0;
   };
 
   return (
@@ -194,7 +211,6 @@ export default function ClientReviewSection({ enabled = true }: { enabled?: bool
                   <div key={review.id} className="w-[250px] shrink-0">
                     <ReviewCard
                       review={review}
-                      index={i}
                       compact
                       videoRef={(el) => { videoRefs.current[i] = el; }}
                       onEnter={() => handleEnter(i)}
@@ -229,7 +245,6 @@ export default function ClientReviewSection({ enabled = true }: { enabled?: bool
                   <ReviewCard
                     key={review.id}
                     review={review}
-                    index={i}
                     compact={false}
                     videoRef={(el) => { videoRefs.current[i] = el; }}
                     onEnter={() => handleEnter(i)}
@@ -277,7 +292,6 @@ export default function ClientReviewSection({ enabled = true }: { enabled?: bool
 
 function ReviewCard({
   review,
-  index,
   compact,
   videoRef,
   onEnter,
@@ -286,7 +300,6 @@ function ReviewCard({
   onEnded,
 }: {
   review: (typeof REVIEWS)[number];
-  index: number;
   compact: boolean;
   videoRef: (el: HTMLVideoElement | null) => void;
   onEnter: () => void;
@@ -294,6 +307,8 @@ function ReviewCard({
   onTap: () => void;
   onEnded: () => void;
 }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+
   return (
     <div
       className="group relative shrink-0 cursor-pointer overflow-hidden rounded-[18px] bg-[#eeeefd]"
@@ -304,13 +319,33 @@ function ReviewCard({
     >
       <video
         ref={videoRef}
-        src={review.video}
-        poster={review.image}
-        muted
         playsInline
         preload="metadata"
-        onEnded={onEnded}
+        onPlaying={(event) => setIsPlaying(event.currentTarget.videoWidth > 0)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => {
+          setIsPlaying(false);
+          onEnded();
+        }}
         className="absolute inset-0 h-full w-full object-cover"
+      >
+        {/* WebM first so Chromium builds without H.264 still show the picture;
+            Safari falls through to the MP4. */}
+        <source src={review.webm} type='video/webm; codecs="vp9, opus"' />
+        <source src={review.video} type='video/mp4; codecs="avc1.640028, mp4a.40.2"' />
+      </video>
+
+      {/* Separate poster layer: some browsers keep the video's `poster` image
+          painted over the first frames. Fading this out on `playing` guarantees
+          the moving video is what the user sees. */}
+      <Image
+        src={review.image}
+        alt=""
+        fill
+        sizes={compact ? "250px" : "454px"}
+        className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-0 ${
+          isPlaying ? "opacity-0" : "opacity-100"
+        }`}
       />
 
       {/* Play button */}
@@ -340,8 +375,8 @@ function ReviewCard({
             <span className="relative block size-[47.68px] shrink-0">
               <Image src="/client-reviews/svg_3.svg" alt="" fill sizes="48px" className="object-contain" />
             </span>
-            <span className="relative block h-[23.9px] w-[125.3px] shrink-0">
-              <Image src="/client-reviews/svg_2.svg" alt="" fill sizes="126px" className="object-contain" />
+            <span className="whitespace-nowrap font-['Satoshi'] text-[20px] font-bold uppercase leading-none tracking-[0.06em] text-white max-sm:text-[15px]">
+              {review.role.includes("@") ? review.role.split("@ ")[1] : review.role}
             </span>
           </div>
           <div className="flex flex-col gap-[9px]">

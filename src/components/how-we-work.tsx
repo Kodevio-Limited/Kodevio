@@ -244,11 +244,21 @@ export default function HowWeWorkSection({ enabled = true }: { enabled?: boolean
           }
 
           // Card states are set by GSAP only; hidden cards sit below the clip.
+          // On compact layouts the cards are shorter than their 640px stage,
+          // so a percentage offset is not enough to clear the clip — use a full
+          // pixel offset there instead.
+          const hiddenYPercent = compact ? 0 : 112;
+          const hiddenY = compact ? 900 : 0;
+
           cards.forEach((card, i) => {
             gsap.set(card, {
-              yPercent: i === 0 ? 0 : 120,
+              yPercent: i === 0 ? 0 : hiddenYPercent,
+              y: i === 0 ? 0 : hiddenY,
+              scale: i === 0 ? 1 : 0.94,
               opacity: 1,
               rotationY: 0,
+              transformOrigin: "50% 50%",
+              force3D: true,
             });
           });
 
@@ -256,28 +266,31 @@ export default function HowWeWorkSection({ enabled = true }: { enabled?: boolean
             scrollTrigger: {
               trigger: pinRef.current,
               start: "top top",
-              end: "+=240%",
+              end: "+=260%",
               pin: true,
               pinSpacing: true,
-              scrub: 0.7,
+              // A little more lag than before: the card glides after the wheel
+              // instead of tracking every raw scroll tick.
+              scrub: 1.05,
               anticipatePin: 1,
+              invalidateOnRefresh: true,
             },
           });
 
-          // Card 1 stays put. Each next card slides up over the stack and
-          // settles 24px lower, leaving the layers underneath peeking out.
+          // Card 1 stays put. Each next card lifts up over the stack, easing
+          // from 94% so the pop-up has a soft landing and settles 24px lower,
+          // leaving the layers underneath peeking out.
           cards.forEach((card, i) => {
             if (i === 0) return;
             tl.fromTo(
               card,
-              { yPercent: 120 },
-              { yPercent: 0, y: i * 24, ease: "power3.out", duration: 1 },
-              i - 1,
+              { yPercent: hiddenYPercent, y: hiddenY, scale: 0.94 },
+              { yPercent: 0, y: i * 24, scale: 1, ease: "power2.out", duration: 1.15 },
+              (i - 1) * 0.9,
             );
           });
 
-          // Hold once all four are stacked, then release the pin.
-          tl.to({}, { duration: 0.45 });
+          // Release the pin as soon as the last card settles — no static hold.
 
           return () => {
             tl.scrollTrigger?.kill();
@@ -323,10 +336,10 @@ export default function HowWeWorkSection({ enabled = true }: { enabled?: boolean
                   <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="#2d2f33" />
                 </svg>
               </div>
-              <h2 data-reveal className="mt-5 font-['Poppins',sans-serif] text-[28px] font-medium leading-[1.3] text-[#2d2f33]">
+              <h2 className="mt-5 font-['Poppins',sans-serif] text-[28px] font-medium leading-[1.3] text-[#2d2f33]">
                 How We Bring Your Vision to Life
               </h2>
-              <p data-reveal className="mt-4 font-['Satoshi'] text-[15px] leading-[1.5] text-black">
+              <p className="mt-4 font-['Satoshi'] text-[15px] leading-[1.5] text-black">
                 Four clear phases that keep you in the loop at every milestone from our first
                 strategy call to post-launch scaling.
               </p>
@@ -350,11 +363,11 @@ export default function HowWeWorkSection({ enabled = true }: { enabled?: boolean
                 </svg>
               </div>
 
-              <h2 data-reveal className="mt-[39px] w-[723px] font-['Poppins',sans-serif] text-[60px] font-medium leading-[1.4] text-[#2d2f33]">
+              <h2 className="mt-[39px] w-[723px] font-['Poppins',sans-serif] text-[60px] font-medium leading-[1.4] text-[#2d2f33]">
                 How We Bring Your Vision to Life
               </h2>
 
-              <p data-reveal className="mt-[40px] w-[723px] font-['Satoshi'] text-[28px] font-normal leading-[1.4] text-black">
+              <p className="mt-[40px] w-[723px] font-['Satoshi'] text-[28px] font-normal leading-[1.4] text-black">
                 Four clear phases that keep you in the loop at every milestone from our first
                 strategy call to post-launch scaling.
               </p>

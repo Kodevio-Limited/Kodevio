@@ -153,10 +153,9 @@ export default function DigitalProductsSection({ enabled = true }: { enabled?: b
       {/* 6 Project Cards Grid (3 columns x 2 rows, exact Figma card geometry) */}
       <div className="mt-16 sm:mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[13px]">
         {PROJECTS.map((proj) => (
-          <a
+          <article
             key={proj.id}
-            href="#case-study"
-            className="figma-case-card group relative block w-full aspect-[579/564] min-h-[500px] select-none text-left transition-transform duration-300 hover:-translate-y-1.5 focus:outline-none"
+            className="figma-case-card group relative block w-full aspect-[579/564] select-none text-left transition-transform duration-300 hover:-translate-y-1.5 focus:outline-none"
           >
             {/* SVG Background: Exact Figma Subtract Path with bottom-right circular cutout */}
             <svg
@@ -164,84 +163,83 @@ export default function DigitalProductsSection({ enabled = true }: { enabled?: b
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
               preserveAspectRatio="none"
-              className="pointer-events-none absolute inset-0 size-full drop-shadow-[0_4px_18px_rgba(0,0,0,0.06)] transition-all duration-300 group-hover:drop-shadow-[0_16px_36px_rgba(104,97,238,0.14)]"
+              className="pointer-events-none absolute inset-0 size-full filter drop-shadow-[0_2px_10px_rgba(0,0,0,0.07)] transition-all duration-300 group-hover:drop-shadow-[0_12px_28px_rgba(104,97,238,0.18)]"
             >
               <path
                 d="M562.8 2.8C573.846 2.8 582.8 11.7543 582.8 22.8V430.131C582.8 445.126 560.123 455.106 545.429 452.116C541.187 451.253 536.797 450.8 532.3 450.8C496.125 450.8 466.8 480.125 466.8 516.3C466.8 520.797 467.253 525.187 468.116 529.429C471.106 544.123 461.126 566.8 446.131 566.8H23.8C12.7543 566.8 3.8 557.846 3.8 546.8V22.8C3.8 11.7543 12.7543 2.8 23.8 2.8H562.8Z"
                 fill="white"
-                className="transition-colors duration-300"
               />
             </svg>
 
-            {/* Inner Content Container */}
-            <div className="relative size-full p-4 sm:p-[15px] flex flex-col justify-between">
-              {/* Mockup Container (top: 15px, h: 283px in Figma) */}
-              <div
-                className={`relative w-full h-[50%] min-h-[220px] sm:min-h-[260px] rounded-[10px] overflow-hidden ${proj.bg} flex items-center justify-center shadow-inner`}
-              >
-                {proj.hasBaseBanner && (
-                  <div className="absolute bottom-0 inset-x-0 h-[64px] pointer-events-none">
-                    <Image
-                      src="/digital-products/cc271.png"
-                      alt="Banner base"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                )}
-                <div className="relative w-full h-full p-3 sm:p-4">
+            {/* Mockup Container: Figma left 15.5px (2.68%), top 15px (2.66%), w 548px (94.65%), h 283px (50.18%) */}
+            <div
+              className={`absolute left-[2.68%] top-[2.66%] w-[94.65%] h-[50.18%] rounded-[10px] overflow-hidden ${proj.bg} flex items-center justify-center shadow-inner`}
+            >
+              {proj.hasBaseBanner && (
+                <div className="absolute bottom-0 inset-x-0 h-[22.6%] pointer-events-none">
                   <Image
-                    src={proj.image}
-                    alt={proj.title}
+                    src="/digital-products/cc271.png"
+                    alt="Banner base"
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-contain drop-shadow-lg transition-transform duration-500 ease-out group-hover:scale-105"
+                    className="object-cover"
                   />
                 </div>
-              </div>
-
-              {/* Title & Description (Figma: title y320, 25px; copy 21px, 16px gap) */}
-              <div className="px-1 sm:px-2 pt-[22px] flex-1">
-                <h3 className="font-['Satoshi'] text-[21px] sm:text-[23px] lg:text-[25px] font-medium text-black leading-[1.4]">
-                  {proj.title}
-                </h3>
-                <p className="mt-[16px] font-['Satoshi'] text-[15px] sm:text-[18px] lg:text-[21px] font-normal text-[#2d2f33] leading-[1.4] line-clamp-2">
-                  {proj.description}
-                </p>
-              </div>
-
-              {/* Bottom Cutout Footer Area */}
-              <div className="relative w-full h-[76px] sm:h-[84px] mt-2">
-                {/* Dashed Line (Vector 9): 450px wide, starting 10px from the left */}
-                <div className="absolute top-0 left-[10px] right-[119px] border-b border-dashed border-[#b9b9b9]" />
-
-                {/* "View Case Study" — Figma y493, 19px #686868 */}
-                <div className="absolute bottom-[46px] left-[16px] flex items-center gap-2">
-                  <span className="font-['Satoshi'] text-[17px] sm:text-[19px] font-medium text-[#686868] transition-colors duration-300 group-hover:text-[#6861ee]">
-                    View Case Study
-                  </span>
-                </div>
-
-                {/* Circle Arrow — 100px at (479,464), icon 36px rotated -45° */}
-                <div className="absolute -bottom-1 -right-1 sm:bottom-0 sm:right-0 size-[80px] sm:size-[92px] lg:size-[100px] flex items-center justify-center rounded-full bg-[#2D2F33] text-white shadow-md transition-all duration-300 group-hover:bg-[#6861ee] group-hover:scale-105 group-hover:shadow-[0_8px_24px_rgba(104,97,238,0.35)]">
-                  <svg
-                    viewBox="0 0 36 36"
-                    fill="none"
-                    className="size-[30px] sm:size-[34px] lg:size-[36px] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
-                  >
-                    <path
-                      d="M6 18H30M21 9L30 18L21 27"
-                      stroke="white"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      transform="rotate(-45 18 18)"
-                    />
-                  </svg>
-                </div>
+              )}
+              <div className="relative w-full h-full p-[3%]">
+                <Image
+                  src={proj.image}
+                  alt={proj.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-contain drop-shadow-md transition-transform duration-500 ease-out group-hover:scale-105"
+                />
               </div>
             </div>
-          </a>
+
+            {/* Title & Description: Figma left 16px (2.76%), top 320px (56.74%), w 514px (88.77%) */}
+            <div className="absolute left-[2.76%] top-[56.74%] w-[88.77%] flex flex-col gap-[8px] sm:gap-[12px]">
+              <h3 className="font-['Satoshi'] text-[17px] sm:text-[20px] lg:text-[24px] font-medium text-black leading-[1.3] truncate">
+                {proj.title}
+              </h3>
+              <p className="font-['Satoshi'] text-[13px] sm:text-[15px] lg:text-[18px] font-normal text-[#2d2f33] leading-[1.4] line-clamp-2">
+                {proj.description}
+              </p>
+            </div>
+
+            {/* Dashed line: Figma left 16px (2.76%), top 459px (81.38%), w 450px (77.72%) */}
+            <div className="absolute left-[2.76%] top-[81.38%] w-[77.72%] border-b border-dashed border-[#b9b9b9]" />
+
+            {/* "View Case Study": Figma left 16px (2.76%), top 493px (87.41%) */}
+            <a
+              href="#case-study"
+              className="absolute left-[2.76%] top-[87.41%] font-['Satoshi'] text-[15px] sm:text-[17px] lg:text-[19px] font-medium text-[#686868] transition-colors duration-300 hover:text-[#6861ee] group-hover:text-[#6861ee]"
+            >
+              View Case Study
+            </a>
+
+            {/* Floating Circle Arrow Link Button: Figma 100px circle at right 0, bottom 0
+                Concentric with the 65.5px radius cutout notch, leaving a 15.5px clear gap! */}
+            <a
+              href="#case-study"
+              aria-label={`View ${proj.title} case study`}
+              className="absolute right-0 bottom-0 w-[17.27%] h-[17.73%] min-w-[68px] min-h-[68px] flex items-center justify-center rounded-full bg-[#2D2F33] text-white shadow-lg transition-all duration-300 group-hover:bg-[#6861ee] group-hover:scale-105 group-hover:shadow-[0_8px_24px_rgba(104,97,238,0.4)] cursor-pointer"
+            >
+              <svg
+                viewBox="0 0 36 36"
+                fill="none"
+                className="size-[42%] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              >
+                <path
+                  d="M6 18H30M21 9L30 18L21 27"
+                  stroke="white"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  transform="rotate(-45 18 18)"
+                />
+              </svg>
+            </a>
+          </article>
         ))}
       </div>
     </section>

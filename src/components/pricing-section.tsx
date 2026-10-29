@@ -305,9 +305,9 @@ export default function PricingSection({ enabled = true }: { enabled?: boolean }
       ref={rootRef}
       id="pricing"
       aria-label="See Pricing"
-      className="relative w-full overflow-hidden bg-[#F8F8F8]"
+      className="relative w-full overflow-hidden bg-white"
     >
-      <div className="flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-[#F8F8F8]">
+      <div className="flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-white">
         {compact ? (
           <div key="compact" className="flex w-full flex-col gap-8 py-10">
             <Row direction="top" compact />

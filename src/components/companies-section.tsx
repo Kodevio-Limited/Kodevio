@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 /*
  * Figma node 324:24031 "Company Logo" (1583 × 446):
@@ -46,28 +45,32 @@ function CompanyCard({ company }: { company: (typeof COMPANIES)[number] }) {
       className="relative flex items-center justify-center"
       style={{
         aspectRatio: `${CARD_W} / ${CARD_H}`,
-        perspective: "720px",
+        perspective: "1600px",
       }}
     >
       <div className="flip-inner relative flex h-full w-full items-center justify-center [transform-style:preserve-3d]">
         {/* Front + back faces share the same logo: exactly Orbix's technique
-            (backface hidden), so the mark is never mirrored or blank mid-flip. */}
-        <div className="card-face absolute inset-0 flex items-center justify-center rounded-[12px] bg-white [backface-visibility:hidden]">
+            (backface hidden), so the mark is never mirrored or blank mid-flip.
+            The hairline border is what makes each white card read as a square
+            against the #F8F8F8 section, matching Figma 324:24031. */}
+        <div className="card-face absolute inset-0 flex items-center justify-center rounded-[12px] border border-[#e9e9e9] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.035)] [backface-visibility:hidden]">
           <Image
             src={company.src}
             alt={company.name}
             width={company.w}
             height={company.h}
+            draggable={false}
             style={{ width: `${(company.w / CARD_W) * 100}%`, height: "auto" }}
             className="object-contain"
           />
         </div>
-        <div className="card-face absolute inset-0 flex items-center justify-center rounded-[12px] bg-white [transform:rotateY(180deg)] [backface-visibility:hidden]">
+        <div className="card-face absolute inset-0 flex items-center justify-center rounded-[12px] border border-[#e9e9e9] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.035)] [transform:rotateY(180deg)] [backface-visibility:hidden]">
           <Image
             src={company.src}
             alt={company.name}
             width={company.w}
             height={company.h}
+            draggable={false}
             style={{ width: `${(company.w / CARD_W) * 100}%`, height: "auto" }}
             className="object-contain"
           />
@@ -98,14 +101,22 @@ export default function CompaniesSection({ enabled = true }: { enabled?: boolean
     let tl: gsap.core.Timeline | null = null;
 
     const ctx = gsap.context(() => {
-      gsap.set(cards, { transformPerspective: 720, transformOrigin: "50% 50%" });
+      gsap.set(cards, {
+        transformOrigin: "50% 50%",
+        force3D: true,
+      });
 
       tl = gsap.timeline({ repeat: -1, repeatDelay: REST, paused: true });
       cards.forEach((el, i) => {
         tl!.fromTo(
           el,
           { rotationY: 0 },
-          { rotationY: -360, duration: FLIP_DURATION, ease: "power2.inOut" },
+          {
+            rotationY: -360,
+            duration: FLIP_DURATION,
+            ease: "power3.inOut",
+            force3D: true,
+          },
           i * STAGGER,
         );
       });
@@ -146,7 +157,7 @@ export default function CompaniesSection({ enabled = true }: { enabled?: boolean
       ref={rootRef}
       id="companies"
       aria-label="Trusted Companies"
-      className="relative z-10 w-full bg-[#F8F8F8] px-4 pt-16 pb-20 sm:px-8 sm:pt-20 lg:pt-[84px] lg:pb-[140px]"
+      className="relative z-10 w-full bg-[#f8f8f8] px-4 pt-16 pb-20 sm:px-8 sm:pt-20 lg:pt-[84px] lg:pb-[140px]"
     >
       {/* Figma 324:24031 — 1583 wide: 2×4 grid (5px gaps) + 29px + caption */}
       <div className="mx-auto flex w-full max-w-[1583px] flex-col items-center gap-[29px]">

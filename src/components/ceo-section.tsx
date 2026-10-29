@@ -62,13 +62,12 @@ function QuoteMark({ className = "" }: { className?: string }) {
   );
 }
 
-/* Dual-layer word: medium/bold copy defines the box width (never reflows),
- * dim copy sits on top and fades out as the scroll reveal passes. */
+/* Smooth gradient reveal word: background-clip text with progressive gradient
+ * that travels across each word with scroll. */
 function Word({ children }: { children: string }) {
   return (
-    <span className="word relative mr-[0.25em] inline-block align-baseline">
-      <span className="word-base font-medium text-[#2d2f33] opacity-0">{children}</span>
-      <span className="word-dim absolute inset-0 font-medium text-[#b9b9b9]">{children}</span>
+    <span className="word word-gradient relative mr-[0.25em] inline-block align-baseline font-medium">
+      {children}
     </span>
   );
 }
@@ -259,8 +258,7 @@ export default function CeoSection({ enabled = true }: { enabled?: boolean }) {
 
           if (media.conditions?.isReduced) {
             // Final state, no pin, no animation.
-            gsap.set(scope.querySelectorAll(".word-base"), { opacity: 1 });
-            gsap.set(scope.querySelectorAll(".word-dim"), { opacity: 0 });
+            gsap.set(scope.querySelectorAll(".word-gradient"), { backgroundPosition: "0% 0%" });
             gsap.set(dividers, { scaleX: 1, transformOrigin: "left center" });
             gsap.set(verticals, { scaleY: 1, transformOrigin: "top center" });
             gsap.set([...cards, ...brackets, ...units], { opacity: 1, y: 0 });
@@ -273,47 +271,32 @@ export default function CeoSection({ enabled = true }: { enabled?: boolean }) {
             return;
           }
 
-          const wordEls = gsap.utils.toArray<HTMLElement>(".word", scope);
-          const baseEls = gsap.utils.toArray<HTMLElement>(".word-base", scope);
-          const dimEls = gsap.utils.toArray<HTMLElement>(".word-dim", scope);
+          const wordEls = gsap.utils.toArray<HTMLElement>(".word-gradient", scope);
 
-          // Stats start hidden — they are revealed by a time-based timeline,
-          // never by scroll.
-          gsap.set(dividers, { scaleX: 0, transformOrigin: "left center" });
-          gsap.set(verticals, { scaleY: 0, transformOrigin: "top center" });
-          gsap.set(cards, { opacity: 0, y: 24 });
-          gsap.set(brackets, { opacity: 0, y: 8 });
-          gsap.set(units, { opacity: 0 });
-          if (topRatedRef.current) gsap.set(topRatedRef.current, { yPercent: 100 });
+          // Stats components are visible from the start; count-up starts concurrently with text reveal
+          gsap.set(dividers, { scaleX: 1, transformOrigin: "left center" });
+          gsap.set(verticals, { scaleY: 1, transformOrigin: "top center" });
+          gsap.set(cards, { opacity: 1, y: 0 });
+          gsap.set(brackets, { opacity: 1, y: 0 });
+          gsap.set(units, { opacity: 1 });
+          if (topRatedRef.current) gsap.set(topRatedRef.current, { yPercent: 0 });
 
-          const tl = gsap.timeline({
-            defaults: { ease: "power1.out" },
-            scrollTrigger: {
-              trigger: scope,
-              start: "top top",
-              end: compact ? "+=240%" : "+=320%",
-              pin: true,
-              scrub: 0.6,
-              anticipatePin: 1,
-              invalidateOnRefresh: true,
-            },
-          });
+          // Start words in the dim/unrevealed state
+          gsap.set(wordEls, { backgroundPosition: "100% 0%" });
 
-          /* ---- 1. Text reveal (unchanged behaviour) ---- */
-          tl.fromTo(wordEls, { y: 4, opacity: 1 }, { y: 0, duration: 0.08, stagger: 0.05 }, 0.12)
-            .fromTo(baseEls, { opacity: 0 }, { opacity: 1, duration: 0.08, stagger: 0.05 }, 0.12)
-            .fromTo(dimEls, { opacity: 0.3 }, { opacity: 0, duration: 0.08, stagger: 0.05 }, 0.12);
-
-          // The moment the last word lands.
-          const textEnd = tl.duration();
-
-          /* Short hold that keeps the pin up while the stats play; the pin
-           * releases as soon as the scrub tail is scrolled through. */
-          tl.to({}, { duration: 0.5 });
-
-          /* ---- 2. Stats — time-based, fired once when the text finishes ---- */
+          /* ---- Stats count-up — runs concurrently when text reveal starts ---- */
           let statsPlayed = false;
           let statsTl: gsap.core.Timeline | null = null;
+
+          const resetStats = () => {
+            statsPlayed = false;
+            statsTl?.kill();
+            STATS.forEach((s, i) => {
+              if (s.count !== "number") return;
+              const el = numEls[i];
+              if (el) el.textContent = (0).toFixed(s.digits);
+            });
+          };
 
           const playStats = () => {
             if (statsPlayed) return;
@@ -321,16 +304,10 @@ export default function CeoSection({ enabled = true }: { enabled?: boolean }) {
 
             statsTl = gsap.timeline({ defaults: { ease: "power2.out" } });
 
-            statsTl
-              .to(dividers, { scaleX: 1, duration: 0.6 }, 0)
-              .to(verticals, { scaleY: 1, duration: 0.6 }, 0)
-              .to(cards, { opacity: 1, y: 0, duration: 0.5, stagger: 0.15 }, 0.1)
-              .to(brackets, { opacity: 1, y: 0, duration: 0.4, stagger: 0.15 }, 0.2);
-
-            // Count-ups: 1.8s, power2.out, 0.15s stagger (no scroll involved).
+            // Count-ups: 1.6s, power2.out, 0.1s stagger
             STATS.forEach((s, i) => {
               if (s.count !== "number") return;
-              const start = 0.15 + i * 0.15;
+              const start = 0.05 + i * 0.1;
               const el = numEls[i];
               if (el) {
                 const proxy = { v: 0 };
@@ -338,7 +315,7 @@ export default function CeoSection({ enabled = true }: { enabled?: boolean }) {
                   proxy,
                   {
                     v: s.to,
-                    duration: 1.8,
+                    duration: 1.6,
                     ease: "power2.out",
                     onUpdate: () => {
                       el.textContent = proxy.v.toFixed(s.digits);
@@ -347,20 +324,41 @@ export default function CeoSection({ enabled = true }: { enabled?: boolean }) {
                   start,
                 );
               }
-
-              const unit = unitRefs.current[i];
-              if (unit && s.suffix) {
-                statsTl!.to(unit, { opacity: 1, duration: 0.3 }, start + 1.8);
-              }
             });
-
-            // "Top Rated" — plain mask reveal, no flip.
-            if (topRatedRef.current) {
-              statsTl.to(topRatedRef.current, { yPercent: 0, duration: 0.6 }, 0.3);
-            }
           };
 
-          tl.call(playStats, [], textEnd);
+          const tl = gsap.timeline({
+            defaults: { ease: "power1.out" },
+            scrollTrigger: {
+              trigger: scope,
+              start: "top top",
+              // Keep the pin just long enough for the quote + count-up. A long
+              // tail after the numbers finish reads as a frozen screen.
+              end: compact ? "+=160%" : "+=180%",
+              pin: true,
+              scrub: 0.6,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              onLeaveBack: resetStats,
+            },
+          });
+
+          /* ---- 1. Text gradient reveal — starts on the first pin pixel ---- */
+          tl.to(
+            wordEls,
+            {
+              backgroundPosition: "0% 0%",
+              duration: 0.22,
+              stagger: 0.055,
+              ease: "power1.out",
+            },
+            0
+          );
+
+          /* ---- 2. Count-up starts with the quote, so the pin is never idle ---- */
+          tl.call(playStats, [], 0);
+
+          /* No trailing hold: the pin releases as the count-up settles. */
 
           return () => {
             statsTl?.kill();
@@ -378,10 +376,10 @@ export default function CeoSection({ enabled = true }: { enabled?: boolean }) {
   }, [enabled, compact]);
 
   return (
-    <section ref={rootRef} id="ceo" aria-label="Leadership & Impact" className="relative w-full bg-[#F8F8F8]">
+    <section ref={rootRef} id="ceo" aria-label="Leadership & Impact" className="relative w-full bg-white">
       <div
         ref={pinRef}
-        className="flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-[#F8F8F8] px-4"
+        className="flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-white px-4"
       >
         {compact ? (
           /* ---------- Compact layout (<1024px) ---------- */

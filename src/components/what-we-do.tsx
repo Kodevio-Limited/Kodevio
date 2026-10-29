@@ -1,47 +1,70 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
 /*
- * Figma node 694:17772 — service rail 3688×1080: 5 cards, 790/725 wide,
- * overlapped by 33px (no gaps), in this order:
- *   UI/UX (light) · App Development (dark) · Web Development (light) ·
- *   AI Integration (dark) · Logo & Branding (light).
- * Keeps the black intro (icon + text reveal), then scrolls the whole rail.
+ * Figma node 694:17772 — service rail 3688×1080:
+ * Exact 1:1 interlocking 5-card puzzle matching Figma:
+ *   1. UI/UX Design     (light, 790px, left: 0px,    z: 20) with Subtract SVG
+ *   2. App Development  (dark,  725px, left: 757px,  z: 10) with rounded-[32px]
+ *   3. Web Development  (light, 790px, left: 1449px, z: 20) with Subtract SVG
+ *   4. AI Integration   (dark,  725px, left: 2206px, z: 10) with rounded-[32px]
+ *   5. Logo & Branding  (light, 790px, left: 2898px, z: 20) with Subtract SVG
+ *
+ * The white cards overlap the black cards by 33px. Their Subtract SVGs contain
+ * the inverse rounded notches between y=81 and y=998 that frame the dark cards,
+ * creating the crisp, visible dividing lines and interlocking top/bottom tabs.
  */
 const LINES = ["Everything You Need", "to Design, Build, and", "Scale Digital Products"];
 
-type Card = {
-  title: string;
-  desc: string;
-  img: string;
-  dark: boolean;
-  gradient: string;
-  width: number;
-};
-
-const CARDS: Card[] = [
-  { title: "UI/UX Design", desc: "UI/UX Design, App Design, Website Design, Dashboard Design, Wireframing & Prototyping, Interaction Design, and Product Design.", img: "/what-we-do/raw_3.png", dark: false, gradient: "from-[#f5f3ff] to-[#e5e0f7]", width: 790 },
-  { title: "App Development", desc: "We design user-friendly experiences for iPhone, Android, Flutter, and React Native apps, so your product feels polished, easy to use, and built for growth.", img: "/what-we-do/raw_0.png", dark: true, gradient: "from-[#f8f2fe] to-[#ce96ff]", width: 725 },
-  { title: "Web Development", desc: "Frontend Development, Backend Development, Full Stack Solutions, Mobile App Development, Custom Web Applications, API Integration.", img: "/what-we-do/raw_2.png", dark: false, gradient: "from-[#f0fdf4] to-[#c9f0d4]", width: 790 },
-  { title: "AI Integration", desc: "Our team integrates AI into product experiences where it creates real value simplifying workflows, improving decisions, and making products smarter, faster, and easier to use.", img: "/what-we-do/raw_1.png", dark: true, gradient: "from-[#eff6ff] to-[#93c5fd]", width: 725 },
-  { title: "Logo & Branding", desc: "Logo Design, Full Branding, Business Branding, 3D Logo, Custom Logo, Visual Identity, Brand Strategy, Social Media Branding, and Brand Guidelines.", img: "/what-we-do/raw_4.png", dark: false, gradient: "from-[#fff7ed] to-[#fde3c4]", width: 790 },
+// Rail geometry in the unzoomed 1080px design space. Used only to decide which
+// card sits under the floating dock, so its light/dark variant always matches.
+const CARD_LAYOUT = [
+  { left: 0, width: 790, dark: false },
+  { left: 757, width: 725, dark: true },
+  { left: 1449, width: 790, dark: false },
+  { left: 2206, width: 725, dark: true },
+  { left: 2898, width: 790, dark: false },
 ];
 
-const ZOOM = 0.72;
-// Rail geometry is measured at runtime so the LAST card always lands flush
-// against the right edge of whatever viewport is used.
-const railStartX = () => window.innerWidth / ZOOM;
-const railEndX = (rail: HTMLElement) => -(rail.offsetWidth - window.innerWidth / ZOOM);
+// The pinned timeline is just the rail: it starts moving on the first pixel
+// after the pin engages, so the hand-off from "fixed" to "animating" is hidden.
+const TIMELINE_UNITS = 3.2;
+const RAIL_START_AT = 0;
+const RAIL_DURATION = 3.2;
 
-export default function WhatWeDoSection({ enabled = true }: { enabled?: boolean }) {
+export default function WhatWeDoSection({
+  enabled = true,
+  onDarkSlideChange,
+}: {
+  enabled?: boolean;
+  onDarkSlideChange?: (isDark: boolean) => void;
+}) {
   const rootRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
+  // The rail is 1080px tall in Figma. Scale it to the viewport height (instead
+  // of subtracting the dock height) so the cards fill the screen edge to edge.
+  const [zoom, setZoom] = useState(0.86);
+
+  const darkSlideCallbackRef = useRef(onDarkSlideChange);
+  useEffect(() => {
+    darkSlideCallbackRef.current = onDarkSlideChange;
+  }, [onDarkSlideChange]);
+
+  useEffect(() => {
+    const updateZoom = () => {
+      const vh = window.innerHeight;
+      setZoom(Math.max(0.6, Number((vh / 1080).toFixed(4))));
+    };
+    updateZoom();
+    window.addEventListener("resize", updateZoom);
+    return () => window.removeEventListener("resize", updateZoom);
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
@@ -52,15 +75,60 @@ export default function WhatWeDoSection({ enabled = true }: { enabled?: boolean 
       const rail = rootRef.current!.querySelector<HTMLElement>(".what-rail")!;
       const stage = rootRef.current!.querySelector<HTMLElement>(".what-heading-stage");
 
+      const railStartX = () => window.innerWidth / zoom;
+      const railEndX = () => -(rail.offsetWidth - window.innerWidth / zoom);
+      const setDark = (isDark: boolean) => darkSlideCallbackRef.current?.(isDark);
+
+      let lastDark: boolean | null = null;
+
+      const syncDock = (rawProgress: number) => {
+        const progress = Math.min(1, Math.max(0, rawProgress));
+        const railProgress = Math.min(
+          1,
+          Math.max(0, (progress * TIMELINE_UNITS - RAIL_START_AT) / RAIL_DURATION),
+        );
+        const railX = railStartX() + (railEndX() - railStartX()) * railProgress;
+        // The screen point the dock sits over, expressed in the rail's design
+        // coordinates (the rail is scaled by CSS `zoom`).
+        const center = window.innerWidth / (2 * zoom) - railX;
+        const card = CARD_LAYOUT.find(
+          (item) => center >= item.left && center <= item.left + item.width,
+        );
+        const isDark = card ? card.dark : true;
+
+        if (isDark !== lastDark) {
+          lastDark = isDark;
+          setDark(isDark);
+        }
+      };
+
       if (isReduced) {
         gsap.set(lines, { opacity: 1, yPercent: 0 });
         if (stage) gsap.set(stage, { opacity: 0 });
-        if (rail) gsap.set(rail, { opacity: 1, x: railEndX(rail) });
+        if (rail) gsap.set(rail, { opacity: 1, x: railEndX() });
+        setDark(false);
         return;
       }
 
       gsap.set(lines, { opacity: 0, yPercent: 100 });
       gsap.set(rail, { opacity: 1, x: railStartX() });
+
+      // Reveal the intro copy during the section's entrance — before the pin
+      // catches it. By the time the screen locks, the lines are already in and
+      // the rail starts moving immediately.
+      gsap.to(lines, {
+        yPercent: 0,
+        opacity: 1,
+        ease: "none",
+        stagger: 0.1,
+        duration: 0.7,
+        scrollTrigger: {
+          trigger: pinRef.current,
+          start: "top 92%",
+          end: "top top",
+          scrub: 0.5,
+        },
+      });
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -72,17 +140,29 @@ export default function WhatWeDoSection({ enabled = true }: { enabled?: boolean 
           scrub: 0.9,
           anticipatePin: 1,
           invalidateOnRefresh: true,
+          onEnter: (self) => syncDock(self.progress),
+          onEnterBack: (self) => syncDock(self.progress),
+          onUpdate: (self) => syncDock(self.progress),
+          onLeave: () => {
+            lastDark = false;
+            setDark(false);
+          },
+          onLeaveBack: () => {
+            lastDark = false;
+            setDark(false);
+          },
         },
       });
 
-      tl.to(lines, { yPercent: 0, opacity: 1, ease: "power3.out", stagger: 0.1, duration: 0.7 }, 0)
-        .to(stage, { opacity: 0, ease: "power2.in", duration: 0.35 }, 0.9)
-        .to(rail, { x: () => railEndX(rail), ease: "none", duration: 3.2 }, 1.15)
-        .to({}, { duration: 1.2 });
+      tl.to(stage, { opacity: 0, ease: "power2.in", duration: 0.35 }, 0)
+        .to(rail, { x: () => railEndX(), ease: "none", duration: RAIL_DURATION }, RAIL_START_AT);
     }, rootRef);
 
-    return () => ctx.revert();
-  }, [enabled]);
+    return () => {
+      ctx.revert();
+      darkSlideCallbackRef.current?.(false);
+    };
+  }, [enabled, zoom]);
 
   return (
     <section
@@ -95,8 +175,8 @@ export default function WhatWeDoSection({ enabled = true }: { enabled?: boolean 
         ref={pinRef}
         className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-black"
       >
-        {/* Black intro */}
-        <div className="what-heading-stage relative z-10 flex w-full max-w-[803px] flex-col items-center gap-[35px] px-5 text-center">
+        {/* Black intro stage */}
+        <div className="what-heading-stage relative z-30 flex w-full max-w-[803px] flex-col items-center gap-[35px] px-5 text-center">
           <div className="flex size-[50px] shrink-0 items-center justify-center rounded-[8px] border-2 border-[#7974ee]">
             <svg viewBox="0 0 24 24" fill="none" className="size-[30px] text-[#7974ee]" stroke="currentColor" strokeWidth="2">
               <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z" />
@@ -112,68 +192,257 @@ export default function WhatWeDoSection({ enabled = true }: { enabled?: boolean 
           </h2>
         </div>
 
-        {/* Full service rail — all cards, overlapped by 33px, no gaps */}
+        {/* Full service rail — exact 1:1 Figma 694:17772 interlocking card rail */}
         <div className="absolute inset-0 flex items-center overflow-hidden">
-          <div className="what-rail flex items-center" style={{ zoom: 0.72 }}>
-            {CARDS.map((card, i) => (
-              <article
-                key={card.title}
-                className={`relative h-[1080px] shrink-0 overflow-hidden rounded-[24px] ${
-                  card.dark ? "bg-[#0d0d0d] text-white" : "bg-[#f4f2f8] text-[#0d0d0d]"
-                }`}
-                style={{ width: card.width, marginLeft: i === 0 ? 0 : -33 }}
-              >
-                {card.dark && (
-                  <>
-                    <h3 className="absolute left-0 right-0 top-[142px] text-center font-['Poppins',sans-serif] text-[57px] font-medium leading-[1.4] text-white">
-                      {card.title}
-                    </h3>
-                    <p className="absolute left-1/2 top-[248px] w-[634px] -translate-x-1/2 text-center font-['Satoshi'] text-[23px] leading-[1.4] text-[#f2f2f2]">
-                      {card.desc}
-                    </p>
-                    <a
-                      href="#contact"
-                      className="absolute left-1/2 top-[381px] inline-flex h-[59px] w-[187px] -translate-x-1/2 items-center justify-center gap-2 rounded-[57px] font-['Satoshi'] text-[20px] font-bold text-white"
-                      style={{ backgroundImage: "linear-gradient(166.67deg, rgb(154,150,255) 8.4213%, rgb(104,97,238) 47.735%, rgb(88,81,234) 87.048%)" }}
-                    >
-                      See More
-                      <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="2">
-                        <path d="M7 17L17 7M17 7H7M17 7V17" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </a>
-                  </>
-                )}
+          <div className="what-rail relative h-[1080px] w-[3688px] shrink-0" style={{ zoom }}>
+            {/* ---------------- CARD 1: UI/UX Design (Light) ---------------- */}
+            <article
+              className="absolute left-0 top-0 z-20 h-[1080px] w-[790px]"
+              aria-label="UI/UX Design"
+            >
+              {/* Figma Subtract SVG Background with Interlocking Notches */}
+              <img
+                src="/what-we-do/svg_4.svg"
+                alt=""
+                className="pointer-events-none absolute inset-0 h-full w-full select-none"
+                aria-hidden="true"
+              />
 
-                {!card.dark && (
-                  <>
-                    <h3 className="absolute left-[78px] top-[142px] w-[634px] font-['Poppins',sans-serif] text-[57px] font-medium leading-[1.4]">
-                      {card.title}
-                    </h3>
-                    <p className="absolute left-[78px] top-[248px] w-[634px] font-['Satoshi'] text-[23px] leading-[1.4] text-[#4b4b4b]">
-                      {card.desc}
-                    </p>
-                    <a
-                      href="#contact"
-                      className="absolute left-[301px] top-[381px] inline-flex h-[59px] w-[187px] items-center justify-center gap-2 rounded-[57px] font-['Satoshi'] text-[20px] font-bold text-white"
-                      style={{ backgroundImage: "linear-gradient(166.67deg, rgb(154,150,255) 8.4213%, rgb(104,97,238) 47.735%, rgb(88,81,234) 87.048%)" }}
-                    >
-                      See More
-                      <svg viewBox="0 0 24 24" fill="none" className="size-5" stroke="currentColor" strokeWidth="2">
-                        <path d="M7 17L17 7M17 7H7M17 7V17" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </a>
-                  </>
-                )}
-
-                <div
-                  className={`absolute left-1/2 top-[484px] h-[475px] w-[502px] -translate-x-1/2 overflow-hidden rounded-[16px] bg-gradient-to-b ${card.gradient} p-6`}
-                >
-                  <div className="relative h-full w-full">
-                    <Image src={card.img} alt={card.title} fill sizes="502px" className="object-contain" />
-                  </div>
+              <div className="relative z-10 flex h-full w-full flex-col items-center pt-[142px] text-center">
+                <div className="flex w-[634px] flex-col items-center gap-[26px]">
+                  <h3 className="w-full font-['Poppins',sans-serif] text-[57px] font-medium leading-[1.4] text-[#2d2f33]">
+                    UI/UX Design
+                  </h3>
+                  <p className="w-full font-['Satoshi',sans-serif] text-[23px] font-normal leading-[1.4] text-[#686868]">
+                    UI/UX Design, App Design, Website Design, Dashboard Design, Wireframing &amp; Prototyping, Interaction Design, and Product Design.
+                  </p>
                 </div>
-              </article>
-            ))}
+
+                <a
+                  href="#contact"
+                  className="mt-[37px] flex h-[59px] items-center justify-center gap-[7px] rounded-[57px] px-[34px] py-[16px] font-['Satoshi',sans-serif] text-[20px] font-bold text-white shadow-[0px_4px_8.15px_rgba(0,0,0,0.12)] transition-transform duration-200 hover:scale-105"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(166.67deg, rgb(154, 150, 255) 8.4213%, rgb(104, 97, 238) 47.735%, rgb(88, 81, 234) 87.048%)",
+                  }}
+                >
+                  <span>See More</span>
+                  <svg viewBox="0 0 24 24" fill="none" className="size-5 text-white" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
+
+                {/* Desk with keyboard & wireframe sketchbook */}
+                <div className="absolute bottom-[121px] left-1/2 h-[475px] w-[502px] -translate-x-1/2 overflow-hidden rounded-[16px]">
+                  <Image
+                    src="/what-we-do/raw_11.jpeg"
+                    alt="UI/UX Design"
+                    fill
+                    sizes="502px"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              </div>
+            </article>
+
+            {/* ---------------- CARD 2: App Development (Dark) ---------------- */}
+            <article
+              className="absolute left-[757px] top-0 z-10 h-[1080px] w-[725px] overflow-hidden rounded-[32px] bg-[#0d0d0d]"
+              aria-label="App Development"
+            >
+              <div className="relative z-10 flex h-full w-full flex-col items-center pt-[142px] text-center">
+                <div className="flex w-[634px] flex-col items-center gap-[26px]">
+                  <h3 className="whitespace-nowrap font-['Poppins',sans-serif] text-[57px] font-medium leading-[1.4] text-white">
+                    App Development
+                  </h3>
+                  <p className="w-full font-['Satoshi',sans-serif] text-[23px] font-normal leading-[1.4] text-[#f2f2f2]">
+                    We design user-friendly experiences for iPhone, Android, Flutter, and React Native apps, so your product feels polished, easy to use, and built for growth.
+                  </p>
+                </div>
+
+                <a
+                  href="#contact"
+                  className="mt-[37px] flex h-[59px] items-center justify-center gap-[7px] rounded-[57px] px-[34px] py-[16px] font-['Satoshi',sans-serif] text-[20px] font-bold text-white shadow-[0px_4px_8.15px_rgba(0,0,0,0.12)] transition-transform duration-200 hover:scale-105"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(166.67deg, rgb(154, 150, 255) 8.4213%, rgb(104, 97, 238) 47.735%, rgb(88, 81, 234) 87.048%)",
+                  }}
+                >
+                  <span>See More</span>
+                  <svg viewBox="0 0 24 24" fill="none" className="size-5 text-white" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
+
+                {/* iPhone mockup on purple gradient with bottom frosted glass blur */}
+                <div className="absolute top-[484px] left-1/2 h-[475px] w-[502px] -translate-x-1/2 overflow-hidden rounded-[16px] bg-gradient-to-b from-[#f8f2fe] to-[#ce96ff]">
+                  <div className="absolute top-[23px] left-1/2 h-[507px] w-[275px] -translate-x-1/2">
+                    <Image
+                      src="/what-we-do/raw_0.png"
+                      alt="App Development"
+                      fill
+                      sizes="275px"
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="pointer-events-none absolute bottom-0 left-0 h-[160px] w-full backdrop-blur-[14px] bg-gradient-to-b from-transparent via-[rgba(0,0,0,0.25)] to-[rgba(0,0,0,0.25)]" />
+                </div>
+              </div>
+            </article>
+
+            {/* ---------------- CARD 3: Web Development (Light) ---------------- */}
+            <article
+              className="absolute left-[1449px] top-0 z-20 h-[1080px] w-[790px]"
+              aria-label="Web Development"
+            >
+              {/* Figma Subtract SVG Background with Interlocking Notches */}
+              <img
+                src="/what-we-do/svg_4.svg"
+                alt=""
+                className="pointer-events-none absolute inset-0 h-full w-full select-none"
+                aria-hidden="true"
+              />
+
+              <div className="relative z-10 flex h-full w-full flex-col items-center pt-[142px] text-center">
+                <div className="flex w-[634px] flex-col items-center gap-[26px]">
+                  <h3 className="w-full font-['Poppins',sans-serif] text-[57px] font-medium leading-[1.4] text-[#2d2f33]">
+                    Web Development
+                  </h3>
+                  <p className="w-full font-['Satoshi',sans-serif] text-[23px] font-normal leading-[1.4] text-[#686868]">
+                    Frontend Development, Backend Development, Full Stack Solutions, Mobile App Development, Custom Web Applications, API Integration.
+                  </p>
+                </div>
+
+                <a
+                  href="#contact"
+                  className="mt-[37px] flex h-[59px] items-center justify-center gap-[7px] rounded-[57px] px-[34px] py-[16px] font-['Satoshi',sans-serif] text-[20px] font-bold text-white shadow-[0px_4px_8.15px_rgba(0,0,0,0.12)] transition-transform duration-200 hover:scale-105"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(166.67deg, rgb(154, 150, 255) 8.4213%, rgb(104, 97, 238) 47.735%, rgb(88, 81, 234) 87.048%)",
+                  }}
+                >
+                  <span>See More</span>
+                  <svg viewBox="0 0 24 24" fill="none" className="size-5 text-white" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
+
+                {/* Tablet dashboard mockup on warm coral gradient */}
+                <div className="absolute bottom-[121px] left-1/2 h-[475px] w-[502px] -translate-x-1/2 overflow-hidden rounded-[16px] bg-gradient-to-b from-[#ffd9d0] to-[#fe6946]">
+                  <div className="absolute bottom-0 left-1/2 h-[380px] w-[502px] -translate-x-1/2">
+                    <Image
+                      src="/what-we-do/raw_1.png"
+                      alt="Web Development"
+                      fill
+                      sizes="502px"
+                      className="object-contain"
+                    />
+                  </div>
+                  <div className="pointer-events-none absolute bottom-0 left-0 h-[160px] w-full backdrop-blur-[14px] bg-gradient-to-b from-transparent via-[rgba(0,0,0,0.25)] to-[rgba(0,0,0,0.25)]" />
+                </div>
+              </div>
+            </article>
+
+            {/* ---------------- CARD 4: AI Integration (Dark) ---------------- */}
+            <article
+              className="absolute left-[2206px] top-0 z-10 h-[1080px] w-[725px] overflow-hidden rounded-[32px] bg-[#0d0d0d]"
+              aria-label="AI Integration"
+            >
+              <div className="relative z-10 flex h-full w-full flex-col items-center pt-[142px] text-center">
+                <div className="flex w-[634px] flex-col items-center gap-[26px]">
+                  <h3 className="whitespace-nowrap font-['Poppins',sans-serif] text-[57px] font-medium leading-[1.4] text-white">
+                    AI Integration
+                  </h3>
+                  <p className="w-full font-['Satoshi',sans-serif] text-[23px] font-normal leading-[1.4] text-[#f2f2f2]">
+                    Our team integrates AI into product experiences where it creates real value simplifying workflows, improving decisions, and making products smarter, faster, and easier to use.
+                  </p>
+                </div>
+
+                <a
+                  href="#contact"
+                  className="mt-[37px] flex h-[59px] items-center justify-center gap-[7px] rounded-[57px] px-[34px] py-[16px] font-['Satoshi',sans-serif] text-[20px] font-bold text-white shadow-[0px_4px_8.15px_rgba(0,0,0,0.12)] transition-transform duration-200 hover:scale-105"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(166.67deg, rgb(154, 150, 255) 8.4213%, rgb(104, 97, 238) 47.735%, rgb(88, 81, 234) 87.048%)",
+                  }}
+                >
+                  <span>See More</span>
+                  <svg viewBox="0 0 24 24" fill="none" className="size-5 text-white" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
+
+                {/* Orange phone mockup on concrete steps */}
+                <div className="absolute top-[484px] left-1/2 h-[475px] w-[502px] -translate-x-1/2 overflow-hidden rounded-[16px] bg-gradient-to-b from-[#ffecd8] to-[#ff8200]">
+                  <Image
+                    src="/what-we-do/raw_6.png"
+                    alt="AI Integration"
+                    fill
+                    sizes="502px"
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+            </article>
+
+            {/* ---------------- CARD 5: Logo & Branding (Light) ---------------- */}
+            <article
+              className="absolute left-[2898px] top-0 z-20 h-[1080px] w-[790px]"
+              aria-label="Logo & Branding"
+            >
+              {/* The last card has no neighbour on its right, so close the outer
+                  notch with white instead of letting the black section show
+                  through as a strip at the end of the rail. */}
+              <div
+                className="pointer-events-none absolute right-0 top-[52px] h-[975px] w-[48px] bg-white"
+                aria-hidden="true"
+              />
+
+              {/* Figma Subtract SVG Background with Interlocking Notches */}
+              <img
+                src="/what-we-do/svg_4.svg"
+                alt=""
+                className="pointer-events-none absolute inset-0 h-full w-full select-none"
+                aria-hidden="true"
+              />
+
+              <div className="relative z-10 flex h-full w-full flex-col items-center pt-[142px] text-center">
+                <div className="flex w-[634px] flex-col items-center gap-[26px]">
+                  <h3 className="w-full font-['Poppins',sans-serif] text-[57px] font-medium leading-[1.4] text-[#2d2f33]">
+                    Logo &amp; Branding
+                  </h3>
+                  <p className="w-full font-['Satoshi',sans-serif] text-[23px] font-normal leading-[1.4] text-[#686868]">
+                    Logo Design, Full Branding, Business Branding, 3D Logo, Custom Logo, Visual Identity, Brand Strategy, Social Media Branding, and Brand Guidelines.
+                  </p>
+                </div>
+
+                <a
+                  href="#contact"
+                  className="mt-[37px] flex h-[59px] items-center justify-center gap-[7px] rounded-[57px] px-[34px] py-[16px] font-['Satoshi',sans-serif] text-[20px] font-bold text-white shadow-[0px_4px_8.15px_rgba(0,0,0,0.12)] transition-transform duration-200 hover:scale-105"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(166.67deg, rgb(154, 150, 255) 8.4213%, rgb(104, 97, 238) 47.735%, rgb(88, 81, 234) 87.048%)",
+                  }}
+                >
+                  <span>See More</span>
+                  <svg viewBox="0 0 24 24" fill="none" className="size-5 text-white" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
+
+                {/* Tote bag on bush under blue sky */}
+                <div className="absolute bottom-[121px] left-1/2 h-[475px] w-[502px] -translate-x-1/2 overflow-hidden rounded-[16px] bg-gradient-to-b from-[#ffecd8] to-[#ff8200]">
+                  <Image
+                    src="/what-we-do/raw_2.png"
+                    alt="Logo & Branding"
+                    fill
+                    sizes="502px"
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+            </article>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import LivingGrass from "@/components/living-grass";
 
 /* Exact icon geometry pulled from Figma (node 1:2 subtree) */
 function ArrowUpRight({ className = "size-6" }: { className?: string }) {
@@ -53,7 +54,7 @@ function CtaButton({
   return (
     <a
       href="#contact"
-      className={`flex h-[59px] items-center justify-center gap-[3px] rounded-[57px] px-[34px] py-4 text-white transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98] ${className}`}
+      className={`relative z-30 flex h-[59px] cursor-pointer items-center justify-center gap-[3px] rounded-[57px] px-[34px] py-4 text-white transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98] ${className}`}
       style={{
         backgroundImage: BTN_GRADIENT,
         /* Figma: 0 4px 16.3px rgba(0,0,0,0.12) with spread 11 */
@@ -82,29 +83,33 @@ export default function HeroSection({
   isEntered?: boolean;
   isNavVisible?: boolean;
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const copyRef = useRef<HTMLDivElement>(null);
+  const [logoTop, setLogoTop] = useState<number>(455);
 
-  /* Respect reduced motion: freeze the looping video on its poster frame. */
+  useEffect(() => {
+    const updatePos = () => {
+      if (!copyRef.current) return;
+      const rect = copyRef.current.getBoundingClientRect();
+      const hero = copyRef.current.closest("#hero");
+      if (hero) {
+        const heroRect = hero.getBoundingClientRect();
+        const copyBottom = rect.bottom - heroRect.top;
+        // User requested: keep just a little bit of gap with Contact Us button (~26px)
+        setLogoTop(Math.round(copyBottom + 26));
+      }
+    };
+    updatePos();
+    window.addEventListener("resize", updatePos);
+    return () => window.removeEventListener("resize", updatePos);
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setMenuOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => {
-      const v = videoRef.current;
-      if (!v) return;
-      if (mq.matches) v.pause();
-      else v.play().catch(() => {});
-    };
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
   }, []);
 
   return (
@@ -114,43 +119,154 @@ export default function HeroSection({
       /* Full-bleed per Figma node 324:23968 — exact 1378px height on 1920px canvas.
          Requires scrolling through the full hero height, so the bottom dissolve
          is placed at the bottom of the 1378px hero and NOT visible on initial load. */
-      className={`relative w-full overflow-hidden bg-[#87b5d6] transition-transform duration-[1250ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+      className={`relative w-full overflow-hidden transition-transform duration-[1250ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
         isEntered
           ? "translate-y-0"
           : "translate-y-full"
       }`}
       style={{
+        /* Sky sampled straight from the original hero clip's poster frame
+           (public/hero/hero-figma-2752.png), so the screen keeps the exact
+           colours it had while the video played. The meadow plate is a
+           cut-out, so this gradient is what shows above its horizon. */
+        background:
+          "linear-gradient(180deg, #70b7d8 0%, #81b9d5 10.8%, #a4c2d5 26.9%, #c0ced7 37.7%, #bdbcd1 48.4%, #b8b7cb 53.8%, #cfe4f2 78%, #d9effd 100%)",
         height: "max(100vh, calc(100vw * 1378 / 1920))",
         minHeight: "850px",
       }}
     >
       {/*
-        The original Kodevio hero clip (Assets/Hero/Hero animation.mp4),
-        1920×1080 24fps — full quality, no downscale/ping-pong re-encode.
-        object-cover + object-top matches the Figma image framing
-        (node 324:23971: full-bleed, slightly zoomed past the top edge).
+        Clouds layer — moving cloud system (part 3 of 3: grass / logo / clouds)
+        Crisp, crystal-clear, high-contrast cumulus clouds drifting across the sky
       */}
-      <div className="absolute inset-0" aria-hidden="true">
+      <div className="hero-sky-clouds" aria-hidden="true">
+        {/* Tier 1: Primary crisp drifting cloud bank */}
+        <div className="cloud-track cloud-track-primary">
+          <div className="cloud-slice">
+            <Image
+              src="/hero/clouds-crisp.webp"
+              alt=""
+              width={2752}
+              height={850}
+              priority
+              className="cloud-img"
+            />
+          </div>
+          <div className="cloud-slice">
+            <Image
+              src="/hero/clouds-crisp.webp"
+              alt=""
+              width={2752}
+              height={850}
+              priority
+              className="cloud-img"
+            />
+          </div>
+        </div>
+
+        {/* Tier 2: Distant parallax clouds for cinematic atmospheric depth */}
+        <div className="cloud-track cloud-track-secondary">
+          <div className="cloud-slice">
+            <Image
+              src="/hero/clouds-crisp.webp"
+              alt=""
+              width={2752}
+              height={850}
+              className="cloud-img cloud-img-secondary"
+            />
+          </div>
+          <div className="cloud-slice">
+            <Image
+              src="/hero/clouds-crisp.webp"
+              alt=""
+              width={2752}
+              height={850}
+              className="cloud-img cloud-img-secondary"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/*
+        Grass layer & 3D Logo (parts 1 & 2 of 3: grass / logo / clouds)
+        - Cut-out meadow plate
+        - 3D Kodevio Logo planted in the middle of the grass
+        - Animated SVG blades and daisies swaying in front of the logo
+      */}
+      <div className="hero-grass" aria-hidden="true">
         <Image
-          src="/hero/hero-figma-2752.png"
+          src="/hero/meadow.png"
           alt=""
-          fill
+          width={2752}
+          height={1536}
           priority
-          sizes="100vw"
-          className="hero-poster-fallback object-cover object-top opacity-100"
+          sizes="108vw"
+          className="meadow"
         />
-        <video
-          ref={videoRef}
-          className="hero-video absolute inset-0 h-full w-full object-cover object-top"
-          src="/hero/hero-original.mp4"
-          poster="/hero/hero-figma-2752.png"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-        />
+
+        {/* 3D Kodevio Logo planted in the middle of the grass, just below Contact Us */}
+        <div
+          className="hero-k-logo-wrap"
+          style={{ top: `${logoTop}px` }}
+        >
+          <div className="relative w-full">
+            <Image
+              src="/hero/k-shape-3d.webp"
+              alt="Kodevio 3D Icon"
+              width={758}
+              height={1083}
+              priority
+              className="hero-k-logo-img"
+            />
+            {/* Ground contact shadow where the logo embeds into the earth */}
+            <div className="hero-k-ground-shadow" aria-hidden="true" />
+            {/* Foreground grass tuft & flowers rooting the base into the soil */}
+            <svg
+              className="hero-k-root-grass"
+              viewBox="0 0 320 60"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              {/* Natural grass blades & daisy blossoms overlapping the bottom legs */}
+              <g fill="#276332">
+                <path d="M10 60 C12 40 18 20 22 5 C20 25 18 45 14 60 Z" />
+                <path d="M35 60 C38 35 46 15 52 0 C48 22 44 42 40 60 Z" />
+                <path d="M70 60 C68 38 60 18 55 2 C62 20 65 40 72 60 Z" />
+                <path d="M110 60 C114 36 122 14 130 0 C125 22 120 42 116 60 Z" />
+                <path d="M145 60 C143 38 135 18 130 5 C138 22 142 42 148 60 Z" />
+                <path d="M185 60 C188 35 196 15 204 2 C198 22 194 42 190 60 Z" />
+                <path d="M225 60 C223 38 215 18 208 4 C216 22 220 42 228 60 Z" />
+                <path d="M260 60 C264 36 272 14 280 0 C275 22 270 42 266 60 Z" />
+                <path d="M295 60 C293 38 285 20 280 8 C287 25 291 43 298 60 Z" />
+              </g>
+              <g fill="#4c8a35">
+                <path d="M20 60 C24 38 32 18 38 6 C34 25 30 44 26 60 Z" />
+                <path d="M55 60 C58 36 68 16 75 4 C70 24 66 44 62 60 Z" />
+                <path d="M95 60 C92 38 84 20 78 8 C86 25 90 43 98 60 Z" />
+                <path d="M130 60 C134 38 142 18 148 4 C144 24 140 44 136 60 Z" />
+                <path d="M170 60 C168 38 160 20 154 8 C162 25 166 43 174 60 Z" />
+                <path d="M205 60 C208 36 218 16 226 2 C220 22 216 42 212 60 Z" />
+                <path d="M245 60 C243 38 235 20 228 8 C236 25 240 43 248 60 Z" />
+                <path d="M280 60 C284 38 292 20 298 6 C294 25 290 44 286 60 Z" />
+              </g>
+              {/* Small white daisy blossoms at the root base */}
+              <g transform="translate(68, 42) scale(0.7)">
+                <circle cx="0" cy="0" r="12" fill="white" />
+                <circle cx="0" cy="0" r="4.5" fill="#FFE23F" />
+              </g>
+              <g transform="translate(182, 38) scale(0.8)">
+                <circle cx="0" cy="0" r="12" fill="white" />
+                <circle cx="0" cy="0" r="4.5" fill="#FFE23F" />
+              </g>
+              <g transform="translate(252, 45) scale(0.65)">
+                <circle cx="0" cy="0" r="12" fill="white" />
+                <circle cx="0" cy="0" r="4.5" fill="#FFE23F" />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <LivingGrass />
       </div>
 
       {/* Top scrim — Figma 10:298: black 28% → transparent at 53.59% */}
@@ -178,13 +294,12 @@ export default function HeroSection({
         >
           <a href="#" aria-label="Kodevio home" className="shrink-0">
             <Image
-              src="/brand/logo_raw.png"
+              src="/navbar/kodevio-logo.svg"
               alt="Kodevio"
               width={141}
               height={33}
               priority
-              unoptimized
-              className="h-[33px] w-[141px] object-contain [filter:brightness(0)_invert(1)]"
+              className="h-[33px] w-[141px] object-contain"
             />
           </a>
 
@@ -259,7 +374,10 @@ export default function HeroSection({
       </header>
 
       {/* ---------- Hero copy (top 138px, width 997, headline 851) ---------- */}
-      <div className="absolute top-[138px] left-1/2 flex w-[min(997px,calc(100%-40px))] -translate-x-1/2 flex-col items-center gap-[25px] sm:top-[138px]">
+      <div
+        ref={copyRef}
+        className="absolute top-[138px] left-1/2 z-30 flex w-[min(997px,calc(100%-40px))] -translate-x-1/2 flex-col items-center gap-[25px] pointer-events-auto sm:top-[138px]"
+      >
         <h1 className="hero-enter w-full max-w-[851px] text-center font-[Satoshi] text-[clamp(2rem,1.05rem+4.4vw,3.75rem)] leading-[1.39] font-medium text-white [text-shadow:0_2px_24px_rgba(0,0,0,0.18)]">
           We Build Software That Moves Businesses Forward
         </h1>
